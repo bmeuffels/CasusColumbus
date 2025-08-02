@@ -627,7 +627,7 @@ function App() {
                   <button
                     key={dimension.id}
                     onClick={() => toggleDimension(dimension.id)}
-                    disabled={showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= 3)}
+                    disabled={showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedDimensions.includes(dimension.id)
                         ? 'border-purple-500 bg-purple-50 shadow-lg'
