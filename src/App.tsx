@@ -278,6 +278,8 @@ function App() {
   };
 
   const toggleDimension = (dimensionId: string) => {
+    if (showFeedback) return; // Prevent changes after feedback is shown
+    
     setSelectedDimensions(prev => {
       if (prev.includes(dimensionId)) {
         return prev.filter(id => id !== dimensionId);
@@ -287,6 +289,11 @@ function App() {
         return prev;
       }
     });
+  };
+
+  const retryDimensionSelection = () => {
+    setSelectedDimensions([]);
+    setShowFeedback(false);
   };
 
   const generateCase = async () => {
@@ -618,11 +625,11 @@ function App() {
                   <button
                     key={dimension.id}
                     onClick={() => toggleDimension(dimension.id)}
-                    disabled={!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= 3}
+                    disabled={showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= 3)}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedDimensions.includes(dimension.id)
                         ? 'border-purple-500 bg-purple-50 shadow-lg'
-                        : !selectedDimensions.includes(dimension.id) && selectedDimensions.length >= 3
+                        : showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= 3)
                         ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
                         : 'border-gray-200 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50'
                     }`}
@@ -640,52 +647,6 @@ function App() {
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex justify-center space-x-4 mb-6">
-              <button
-                onClick={() => setCurrentPage('selection')}
-                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
-              >
-                <ArrowRight className="w-5 h-5 rotate-180" />
-                <span>Terug naar Selectie</span>
-              </button>
-              
-              {selectedDimensions.length === 3 && !showFeedback && (
-                <button
-                  onClick={() => setShowFeedback(true)}
-                  className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                >
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Toon Feedback</span>
-                </button>
-              )}
-              
-              {showFeedback && (
-                <button
-                  onClick={expandCase}
-                  disabled={isExpandingCase}
-                  className={`flex items-center space-x-2 px-8 py-3 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                    isExpandingCase
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
-                  }`}
-                >
-                  {isExpandingCase ? (
-                    <>
-                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Casus wordt uitgebreid...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      <span>Ga naar Belanghebbenden</span>
-                      <ArrowRight className="w-5 h-5" />
-                    </>
-                  )}
-                </button>
-              )}
             </div>
 
             {/* Feedback Section */}
@@ -758,6 +719,62 @@ function App() {
                 </div>
               </div>
             )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => setCurrentPage('selection')}
+                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Selectie</span>
+              </button>
+              
+              {selectedDimensions.length === 3 && !showFeedback && (
+                <button
+                  onClick={() => setShowFeedback(true)}
+                  className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Toon Feedback</span>
+                </button>
+              )}
+              
+              {showFeedback && (
+                <button
+                  onClick={retryDimensionSelection}
+                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                  <span>Opnieuw proberen</span>
+                </button>
+              )}
+              
+              {showFeedback && (
+                <button
+                  onClick={expandCase}
+                  disabled={isExpandingCase}
+                  className={`flex items-center space-x-2 px-8 py-3 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                    isExpandingCase
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
+                  }`}
+                >
+                  {isExpandingCase ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Casus wordt uitgebreid...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      <span>Ga naar Belanghebbenden</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           /* Stakeholders Page */
