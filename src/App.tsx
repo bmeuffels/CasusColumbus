@@ -48,11 +48,25 @@ interface CaseResult {
 
 const WORK_FIELDS: WorkField[] = [
   {
-    id: 'education',
-    name: 'Onderwijs',
+    id: 'primary-special-education',
+    name: 'Basisonderwijs & Speciaal Onderwijs',
     icon: <GraduationCap className="w-6 h-6" />,
     color: 'from-blue-500 to-indigo-600',
-    description: 'Scholen, universiteiten, trainingscentra'
+    description: 'Basisscholen, speciale onderwijsinstellingen'
+  },
+  {
+    id: 'secondary-vocational-education',
+    name: 'Voortgezet & Middelbaar Beroepsonderwijs',
+    icon: <GraduationCap className="w-6 h-6" />,
+    color: 'from-blue-600 to-indigo-700',
+    description: 'Middelbare scholen, ROC, MBO-instellingen'
+  },
+  {
+    id: 'higher-adult-education',
+    name: 'Hoger Onderwijs & Volwasseneneducatie',
+    icon: <GraduationCap className="w-6 h-6" />,
+    color: 'from-indigo-500 to-blue-600',
+    description: 'Universiteiten, HBO, volwasseneneducatie'
   },
   {
     id: 'healthcare',
@@ -88,6 +102,13 @@ const WORK_FIELDS: WorkField[] = [
     icon: <Globe className="w-6 h-6" />,
     color: 'from-cyan-500 to-teal-600',
     description: 'Journalistiek, PR, sociale media'
+  },
+  {
+    id: 'science-innovation',
+    name: 'Wetenschap & Innovatie',
+    icon: <Brain className="w-6 h-6" />,
+    color: 'from-emerald-500 to-teal-600',
+    description: 'Onderzoeksinstituten, R&D, innovatiecentra'
   }
 ];
 
@@ -144,19 +165,27 @@ function App() {
   const [showResult, setShowResult] = useState(false);
 
   const toggleField = (fieldId: string) => {
-    setSelectedFields(prev => 
-      prev.includes(fieldId) 
-        ? prev.filter(id => id !== fieldId)
-        : [...prev, fieldId]
-    );
+    setSelectedFields(prev => {
+      if (prev.includes(fieldId)) {
+        return prev.filter(id => id !== fieldId);
+      } else if (prev.length < 2) {
+        return [...prev, fieldId];
+      } else {
+        return prev;
+      }
+    });
   };
 
   const toggleTopic = (topicId: string) => {
-    setSelectedTopics(prev => 
-      prev.includes(topicId) 
-        ? prev.filter(id => id !== topicId)
-        : [...prev, topicId]
-    );
+    setSelectedTopics(prev => {
+      if (prev.includes(topicId)) {
+        return prev.filter(id => id !== topicId);
+      } else if (prev.length === 0) {
+        return [topicId];
+      } else {
+        return [topicId];
+      }
+    });
   };
 
   const generateCase = async () => {
@@ -277,7 +306,7 @@ function App() {
                   <Users className="w-7 h-7 text-blue-600" />
                   Selecteer je vakgebied(en)
                 </h2>
-                <p className="text-gray-600">Kies één of meerdere vakgebieden die relevant zijn voor je organisatie.</p>
+                <p className="text-gray-600">Kies maximaal twee vakgebieden die relevant zijn voor je organisatie.</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -285,9 +314,12 @@ function App() {
                   <button
                     key={field.id}
                     onClick={() => toggleField(field.id)}
+                    disabled={!selectedFields.includes(field.id) && selectedFields.length >= 2}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedFields.includes(field.id)
                         ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : !selectedFields.includes(field.id) && selectedFields.length >= 2
+                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
                         : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
                     }`}
                   >
@@ -313,7 +345,7 @@ function App() {
                   <Laptop className="w-7 h-7 text-indigo-600" />
                   Selecteer technologie onderwerp(en)
                 </h2>
-                <p className="text-gray-600">Kies de technologische thema's voor je ethische casus.</p>
+                <p className="text-gray-600">Kies één technologisch thema voor je ethische casus.</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -321,9 +353,12 @@ function App() {
                   <button
                     key={topic.id}
                     onClick={() => toggleTopic(topic.id)}
+                    disabled={!selectedTopics.includes(topic.id) && selectedTopics.length >= 1}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedTopics.includes(topic.id)
                         ? 'border-indigo-500 bg-indigo-50 shadow-lg'
+                        : !selectedTopics.includes(topic.id) && selectedTopics.length >= 1
+                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
                         : 'border-gray-200 bg-white/80 hover:border-indigo-300 hover:bg-indigo-50/50'
                     }`}
                   >
@@ -343,7 +378,7 @@ function App() {
             </div>
 
             {/* Generate Button */}
-            {selectedFields.length > 0 && selectedTopics.length > 0 && (
+            {selectedFields.length > 0 && selectedTopics.length === 1 && (
               <div className="text-center">
                 <button
                   onClick={generateCase}
