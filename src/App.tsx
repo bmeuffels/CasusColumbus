@@ -248,7 +248,7 @@ function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<CaseResult | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [currentPage, setCurrentPage] = useState<'selection' | 'case' | 'compass' | 'stakeholders'>('selection');
+  const [currentPage, setCurrentPage] = useState<'selection' | 'case' | 'stakeholders'>('selection');
   const [isExpandingCase, setIsExpandingCase] = useState(false);
 
   const toggleField = (fieldId: string) => {
@@ -547,7 +547,7 @@ function App() {
             )}
           </div>
         ) : currentPage === 'case' ? (
-          /* Case Display */
+          /* Case Display with Ethical Compass */
           <div className="space-y-8">
             {/* Compact Case Description */}
             <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
@@ -583,29 +583,7 @@ function App() {
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-center space-x-4">
-              <button
-                onClick={() => setCurrentPage('selection')}
-                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
-              >
-                <ArrowRight className="w-5 h-5 rotate-180" />
-                <span>Terug naar Selectie</span>
-              </button>
-              <button
-                onClick={() => setCurrentPage('compass')}
-                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-              >
-                <Sparkles className="w-5 h-5" />
-                <span>Verdiep de Casus</span>
-                <ArrowRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        ) : currentPage === 'compass' ? (
-          /* Ethical Compass Workflow */
-          <div className="space-y-8">
-            {/* Compass Header */}
+            {/* Ethical Compass Workflow */}
             <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8 text-center">
               <div className="mb-6">
                 <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-3">
@@ -662,11 +640,11 @@ function App() {
             {/* Action Buttons */}
             <div className="flex justify-center space-x-4">
               <button
-                onClick={() => setCurrentPage('case')}
+                onClick={() => setCurrentPage('selection')}
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
               >
                 <ArrowRight className="w-5 h-5 rotate-180" />
-                <span>Terug naar Casus</span>
+                <span>Terug naar Selectie</span>
               </button>
               
               {selectedDimensions.length === 3 && (
@@ -767,11 +745,11 @@ function App() {
             {/* Action Buttons */}
             <div className="flex justify-center space-x-4">
               <button
-                onClick={() => setCurrentPage('compass')}
+                onClick={() => setCurrentPage('case')}
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
               >
                 <ArrowRight className="w-5 h-5 rotate-180" />
-                <span>Terug naar Kompas</span>
+                <span>Terug naar Casus</span>
               </button>
               <button
                 onClick={generateCase}
