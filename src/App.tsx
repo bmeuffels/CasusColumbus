@@ -41,6 +41,8 @@ interface CaseResult {
   case: string;
   compactCase: string;
   expandedCase: string;
+  correctDimensions: string[];
+  explanations: string[];
   stakeholders: Array<{
     role: string;
     interests: string;
@@ -247,9 +249,9 @@ function App() {
   const [selectedDimensions, setSelectedDimensions] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<CaseResult | null>(null);
-  const [showResult, setShowResult] = useState(false);
   const [currentPage, setCurrentPage] = useState<'selection' | 'case' | 'stakeholders'>('selection');
   const [isExpandingCase, setIsExpandingCase] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const toggleField = (fieldId: string) => {
     setSelectedFields(prev => {
@@ -291,7 +293,6 @@ function App() {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
     setIsGenerating(true);
-    setShowResult(false);
 
     const selectedFieldNames = selectedFields.map(id => 
       WORK_FIELDS.find(f => f.id === id)?.name
@@ -328,6 +329,8 @@ function App() {
         case: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
         compactCase: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
         expandedCase: '',
+        correctDimensions: [],
+        explanations: [],
         stakeholders: []
       });
       setCurrentPage('case');
@@ -337,13 +340,14 @@ function App() {
   };
 
   const expandCase = async () => {
-    if (!result || selectedDimensions.length !== 3) return;
+    if (!result) return;
 
     setIsExpandingCase(true);
 
-    const selectedDimensionNames = selectedDimensions.map(id => 
+    // Use correct dimensions instead of user selections
+    const correctDimensionNames = result.correctDimensions.map(id => 
       ETHICAL_DIMENSIONS.find(d => d.id === id)?.name
-    ).join(', ');
+    ).filter(Boolean).join(', ');
 
     try {
       const response = await fetch('/api/expand-case', {
@@ -353,7 +357,7 @@ function App() {
         },
         body: JSON.stringify({
           compactCase: result.compactCase,
-          selectedDimensions: selectedDimensionNames.split(', ')
+          selectedDimensions: correctDimensionNames.split(', ')
         })
       });
 
@@ -381,6 +385,7 @@ function App() {
     setSelectedTopics([]);
     setSelectedDimensions([]);
     setResult(null);
+    setShowFeedback(false);
     setCurrentPage('selection');
   };
 
@@ -638,7 +643,7 @@ function App() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-center space-x-4">
+            <div className="flex justify-center space-x-4 mb-6">
               <button
                 onClick={() => setCurrentPage('selection')}
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
@@ -647,7 +652,17 @@ function App() {
                 <span>Terug naar Selectie</span>
               </button>
               
-              {selectedDimensions.length === 3 && (
+              {selectedDimensions.length === 3 && !showFeedback && (
+                <button
+                  onClick={() => setShowFeedback(true)}
+                  className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Toon Feedback</span>
+                </button>
+              )}
+              
+              {showFeedback && (
                 <button
                   onClick={expandCase}
                   disabled={isExpandingCase}
@@ -672,6 +687,77 @@ function App() {
                 </button>
               )}
             </div>
+
+            {/* Feedback Section */}
+            {showFeedback && result && (
+              <div className="backdrop-blur-xl bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl shadow-lg border border-green-200 p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                    <CheckCircle className="w-7 h-7 text-green-600" />
+                    Feedback: De Juiste Ethische Spanningsvelden
+                  </h2>
+                  <p className="text-gray-600">Hier zijn de drie meest relevante ethische dimensies voor deze casus:</p>
+                </div>
+                
+                <div className="space-y-4">
+                  {result.correctDimensions.map((dimensionId, index) => {
+                    const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
+                    const isUserCorrect = selectedDimensions.includes(dimensionId);
+                    
+                    return dimension ? (
+                      <div key={dimensionId} className={`p-6 rounded-2xl border-2 ${
+                        isUserCorrect 
+                          ? 'border-green-400 bg-green-50' 
+                          : 'border-orange-400 bg-orange-50'
+                      }`}>
+                        <div className="flex items-start gap-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-lg`}>
+                            {isUserCorrect ? (
+                              <CheckCircle className="w-6 h-6" />
+                            ) : (
+                              <span className="font-bold">{index + 1}</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-semibold text-gray-800">{dimension.name}</h3>
+                              {isUserCorrect && (
+                                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                  ✓ Correct gekozen
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-700 text-sm mb-3">{dimension.description}</p>
+                            <div className="bg-white/80 p-4 rounded-xl">
+                              <h4 className="font-medium text-gray-800 mb-2">Waarom dit relevant is voor deze casus:</h4>
+                              <p className="text-gray-700 text-sm">
+                                {result.explanations[index] || 'Uitleg wordt geladen...'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+                
+                <div className="mt-6 p-4 bg-white/80 rounded-xl">
+                  <h3 className="font-semibold text-gray-800 mb-2">Jouw Score:</h3>
+                  <p className="text-gray-700">
+                    Je hebt <strong>{selectedDimensions.filter(id => result.correctDimensions.includes(id)).length} van de 3</strong> juiste ethische spanningsvelden geïdentificeerd.
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length === 3 && (
+                      <span className="text-green-600 font-medium"> Uitstekend werk! 🎉</span>
+                    )}
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length === 2 && (
+                      <span className="text-orange-600 font-medium"> Goed gedaan! 👍</span>
+                    )}
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length <= 1 && (
+                      <span className="text-red-600 font-medium"> Probeer de casus nog eens goed door te lezen. 🤔</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           /* Stakeholders Page */
