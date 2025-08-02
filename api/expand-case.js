@@ -17,9 +17,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { selectedFields, selectedTopics } = req.body;
+  const { compactCase, selectedDimensions } = req.body;
 
-  if (!selectedFields || !selectedTopics || selectedFields.length === 0 || selectedTopics.length === 0) {
+  if (!compactCase || !selectedDimensions || selectedDimensions.length === 0) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
@@ -28,24 +28,20 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  const prompt = `Genereer een realistische ethische casus voor professionals uit ${selectedFields.join(', ')} over ${selectedTopics.join(', ')}.
+  const prompt = `Gegeven deze compacte ethische casus:
 
-BELANGRIJK: Maak de casus beschrijving compact en beschrijf de pijnpunten NIET expliciet. De gebruiker gaat deze later zelf identificeren via een werkvorm.
+"${compactCase}"
+
+En de volgende geselecteerde ethische spanningsvelden: ${selectedDimensions.join(', ')}
+
+Breid de casus uit met specifieke details en voorbeelden die deze ethische spanningsvelden belichten. Voeg concrete situaties, dilemma's en uitdagingen toe die relevant zijn voor de geselecteerde dimensies.
 
 Geef de output in het volgende JSON formaat:
 {
-  "case": "Een compacte, levendige beschrijving van de ethische casus (ongeveer 150 woorden). Maak het realistisch en relevant voor de geselecteerde vakgebieden. Beschrijf de situatie en de betrokken partijen, maar laat de ethische dilemma's impliciet - beschrijf ze NIET expliciet.",
-  "compactCase": "Dezelfde compacte beschrijving als hierboven",
-  "stakeholders": [
-    {
-      "role": "Naam van de rol/functie",
-      "interests": "Wat zijn de belangen van deze stakeholder",
-      "perspective": "Welk standpunt neemt deze stakeholder waarschijnlijk in"
-    }
-  ]
+  "expandedCase": "Een uitgebreide versie van de casus (300-400 woorden) die specifiek ingaat op de geselecteerde ethische spanningsvelden. Maak de dilemma's nu WEL expliciet en geef concrete voorbeelden van hoe deze ethische uitdagingen zich manifesteren in de praktijk."
 }
 
-Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieven. Maak de casus complex genoeg voor een goede discussie, maar wel begrijpelijk. Gebruik Nederlandse taal en zorg dat de casus relevant is voor de Nederlandse context.`;
+Gebruik Nederlandse taal en zorg dat de uitbreiding naadloos aansluit op de originele casus.`;
 
   try {
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
@@ -82,9 +78,9 @@ Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieve
       throw new Error('Geen geldige JSON gevonden in response');
     }
   } catch (error) {
-    console.error('Error generating case:', error);
+    console.error('Error expanding case:', error);
     return res.status(500).json({ 
-      error: 'Er is een fout opgetreden bij het genereren van de casus',
+      error: 'Er is een fout opgetreden bij het uitbreiden van de casus',
       details: error.message 
     });
   }
