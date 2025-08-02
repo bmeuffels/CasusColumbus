@@ -30,12 +30,36 @@ export default async function handler(req, res) {
 
   const prompt = `Genereer een realistische ethische casus voor professionals uit ${selectedFields.join(', ')} over ${selectedTopics.join(', ')}.
 
-BELANGRIJK: Maak de casus beschrijving compact en beschrijf de pijnpunten NIET expliciet. De gebruiker gaat deze later zelf identificeren via een werkvorm.
+BELANGRIJK: 
+1. Maak de casus beschrijving compact maar wel inhoudelijk duidend genoeg zodat de belangrijkste ethische pijnpunten af te leiden zijn
+2. Beschrijf de pijnpunten NIET expliciet - de gebruiker moet ze zelf kunnen identificeren
+3. Zorg dat de casus duidelijke aanwijzingen bevat voor de 3 meest relevante ethische dimensies
+4. Geef ook uitleg waarom deze 3 dimensies het meest relevant zijn
+
+Kies uit deze 12 ethische dimensies:
+- relationships (Relatie tussen mensen)
+- privacy (Privacy & gegevensbescherming) 
+- accessibility (Toegankelijkheid & inclusiviteit)
+- autonomy (Autonomie & manipulatie)
+- responsibility (Verantwoordelijkheid & aansprakelijkheid)
+- sustainability (Duurzaamheid & milieu-impact)
+- bias (Bias & discriminatie)
+- transparency (Transparantie & uitlegbaarheid)
+- oversight (Menselijk toezicht & controle)
+- wellbeing (Sociaal welzijn & psychologie)
+- culture (Culturele & sociale impact)
+- legal (Internationale & juridische implicaties)
 
 Geef de output in het volgende JSON formaat:
 {
-  "case": "Een compacte, levendige beschrijving van de ethische casus (ongeveer 150 woorden). Maak het realistisch en relevant voor de geselecteerde vakgebieden. Beschrijf de situatie en de betrokken partijen, maar laat de ethische dilemma's impliciet - beschrijf ze NIET expliciet.",
+  "case": "Een compacte, levendige beschrijving van de ethische casus (ongeveer 200 woorden). Maak het realistisch en relevant voor de geselecteerde vakgebieden. Beschrijf de situatie en de betrokken partijen met voldoende detail zodat de ethische pijnpunten af te leiden zijn, maar beschrijf de dilemma's NIET expliciet.",
   "compactCase": "Dezelfde compacte beschrijving als hierboven",
+  "correctDimensions": ["dimension1", "dimension2", "dimension3"],
+  "explanations": [
+    "Uitleg waarom dimension1 relevant is voor deze specifieke casus",
+    "Uitleg waarom dimension2 relevant is voor deze specifieke casus", 
+    "Uitleg waarom dimension3 relevant is voor deze specifieke casus"
+  ],
   "stakeholders": [
     {
       "role": "Naam van de rol/functie",
