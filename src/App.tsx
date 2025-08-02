@@ -375,14 +375,29 @@ function App() {
       }
 
       const expandedResult = await response.json();
-      setResult(prev => prev ? {
-        ...prev,
-        expandedCase: expandedResult.expandedCase
-      } : null);
+      
+      if (expandedResult.expandedCase) {
+        setResult(prev => prev ? {
+          ...prev,
+          expandedCase: expandedResult.expandedCase
+        } : null);
+      } else {
+        // Fallback: use original case if expansion fails
+        console.warn('No expanded case received, using original case');
+        setResult(prev => prev ? {
+          ...prev,
+          expandedCase: prev.compactCase || prev.case
+        } : null);
+      }
+      
       setCurrentPage('stakeholders');
     } catch (error) {
       console.error('Error expanding case:', error);
-      // Fallback: just go to stakeholders page with original case
+      // Fallback: use original case and continue
+      setResult(prev => prev ? {
+        ...prev,
+        expandedCase: prev.compactCase || prev.case
+      } : null);
       setCurrentPage('stakeholders');
     } finally {
       setIsExpandingCase(false);
@@ -395,6 +410,7 @@ function App() {
     setSelectedDimensions([]);
     setResult(null);
     setShowFeedback(false);
+    setRequiredSelections(3);
     setCurrentPage('selection');
   };
 
@@ -782,7 +798,7 @@ function App() {
           /* Stakeholders Page */
           <div className="space-y-8">
             {/* Expanded Case Description */}
-            {result?.expandedCase && (
+            {result && (result.expandedCase || result.compactCase || result.case) && (
               <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
@@ -790,7 +806,7 @@ function App() {
                     Uitgebreide Casus Analyse
                   </h2>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {result.correctDimensions.map(dimensionId => {
+                    {result?.correctDimensions?.map(dimensionId => {
                       const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
                       return dimension ? (
                         <span key={dimensionId} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
@@ -803,7 +819,7 @@ function App() {
                 
                 <div className="prose prose-lg max-w-none">
                   <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {result.expandedCase}
+                    {result.expandedCase || result.compactCase || result.case}
                   </p>
                 </div>
               </div>
@@ -857,12 +873,11 @@ function App() {
                 <span>Terug naar Casus</span>
               </button>
               <button
-                onClick={generateCase}
-                disabled={isGenerating}
-                className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                onClick={resetForm}
+                className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                <RefreshCw className="w-5 h-5" />
-                <span>Nieuwe Casus Genereren</span>
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Hoofdmenu</span>
               </button>
             </div>
           </div>
