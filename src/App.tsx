@@ -343,7 +343,7 @@ function App() {
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
                   <Laptop className="w-7 h-7 text-indigo-600" />
-                  Selecteer technologie onderwerp(en)
+                  Selecteer technologie onderwerp
                 </h2>
                 <p className="text-gray-600">Kies één technologisch thema voor je ethische casus.</p>
               </div>
