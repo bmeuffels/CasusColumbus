@@ -252,6 +252,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState<'selection' | 'case' | 'stakeholders'>('selection');
   const [isExpandingCase, setIsExpandingCase] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [requiredSelections, setRequiredSelections] = useState(3);
 
   const toggleField = (fieldId: string) => {
     setSelectedFields(prev => {
@@ -283,7 +284,7 @@ function App() {
     setSelectedDimensions(prev => {
       if (prev.includes(dimensionId)) {
         return prev.filter(id => id !== dimensionId);
-      } else if (prev.length < 3) {
+      } else if (prev.length < requiredSelections) {
         return [...prev, dimensionId];
       } else {
         return prev;
@@ -329,6 +330,7 @@ function App() {
 
       const result = await response.json();
       setResult(result);
+      setRequiredSelections(result.correctDimensions.length);
       setCurrentPage('case');
     } catch (error) {
       console.error('Error:', error);
@@ -603,7 +605,7 @@ function App() {
                   Waar schommelt het morele kompas?
                 </h2>
                 <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-                  Selecteer de <strong>3 ethische spanningsvelden</strong> die volgens jou het meest relevant zijn voor deze casus. 
+                  Selecteer de <strong>{requiredSelections} ethische spanningsvelden</strong> die volgens jou het meest relevant zijn voor deze casus. 
                   Op basis van je keuze krijg je gerichte feedback en wordt de casus uitgebreid.
                 </p>
               </div>
@@ -613,7 +615,7 @@ function App() {
                   <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs">
                     {selectedDimensions.length}
                   </div>
-                  van 3 geselecteerd
+                  van {requiredSelections} geselecteerd
                 </span>
               </div>
             </div>
@@ -629,7 +631,7 @@ function App() {
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedDimensions.includes(dimension.id)
                         ? 'border-purple-500 bg-purple-50 shadow-lg'
-                        : showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= 3)
+                        : showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)
                         ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
                         : 'border-gray-200 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50'
                     }`}
@@ -705,14 +707,14 @@ function App() {
                 <div className="mt-6 p-4 bg-white/80 rounded-xl">
                   <h3 className="font-semibold text-gray-800 mb-2">Jouw Score:</h3>
                   <p className="text-gray-700">
-                    Je hebt <strong>{selectedDimensions.filter(id => result.correctDimensions.includes(id)).length} van de 3</strong> juiste ethische spanningsvelden geïdentificeerd.
-                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length === 3 && (
+                    Je hebt <strong>{selectedDimensions.filter(id => result.correctDimensions.includes(id)).length} van de {requiredSelections}</strong> juiste ethische spanningsvelden geïdentificeerd.
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length === requiredSelections && (
                       <span className="text-green-600 font-medium"> Uitstekend werk! 🎉</span>
                     )}
-                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length === 2 && (
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length >= Math.floor(requiredSelections * 0.6) && selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < requiredSelections && (
                       <span className="text-orange-600 font-medium"> Goed gedaan! 👍</span>
                     )}
-                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length <= 1 && (
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < Math.floor(requiredSelections * 0.6) && (
                       <span className="text-red-600 font-medium"> Probeer de casus nog eens goed door te lezen. 🤔</span>
                     )}
                   </p>
@@ -730,7 +732,7 @@ function App() {
                 <span>Terug naar Selectie</span>
               </button>
               
-              {selectedDimensions.length === 3 && !showFeedback && (
+              {selectedDimensions.length === requiredSelections && !showFeedback && (
                 <button
                   onClick={() => setShowFeedback(true)}
                   className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -788,7 +790,7 @@ function App() {
                     Uitgebreide Casus Analyse
                   </h2>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {selectedDimensions.map(dimensionId => {
+                    {result.correctDimensions.map(dimensionId => {
                       const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
                       return dimension ? (
                         <span key={dimensionId} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">

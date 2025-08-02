@@ -33,8 +33,9 @@ export default async function handler(req, res) {
 BELANGRIJK: 
 1. Maak de casus beschrijving compact maar wel inhoudelijk duidend genoeg zodat de belangrijkste ethische pijnpunten af te leiden zijn
 2. Beschrijf de pijnpunten NIET expliciet - de gebruiker moet ze zelf kunnen identificeren
-3. Zorg dat de casus duidelijke aanwijzingen bevat voor de 3 meest relevante ethische dimensies
-4. Geef ook uitleg waarom deze 3 dimensies het meest relevant zijn
+3. Analyseer de casus grondig en bepaal welke ethische dimensies ECHT het meest relevant zijn (minimaal 3, maximaal 5)
+4. Selecteer alleen dimensies die duidelijk en ondubbelzinnig relevant zijn voor deze specifieke casus
+5. Geef uitleg waarom elke geselecteerde dimensie relevant is
 
 Kies uit deze 12 ethische dimensies:
 - relationships (Relatie tussen mensen)
@@ -54,11 +55,13 @@ Geef de output in het volgende JSON formaat:
 {
   "case": "Een compacte, levendige beschrijving van de ethische casus (ongeveer 200 woorden). Maak het realistisch en relevant voor de geselecteerde vakgebieden. Beschrijf de situatie en de betrokken partijen met voldoende detail zodat de ethische pijnpunten af te leiden zijn, maar beschrijf de dilemma's NIET expliciet.",
   "compactCase": "Dezelfde compacte beschrijving als hierboven",
-  "correctDimensions": ["dimension1", "dimension2", "dimension3"],
+  "correctDimensions": ["dimension1", "dimension2", "dimension3", "dimension4", "dimension5"],
   "explanations": [
     "Uitleg waarom dimension1 relevant is voor deze specifieke casus",
     "Uitleg waarom dimension2 relevant is voor deze specifieke casus", 
-    "Uitleg waarom dimension3 relevant is voor deze specifieke casus"
+    "Uitleg waarom dimension3 relevant is voor deze specifieke casus",
+    "Uitleg waarom dimension4 relevant is voor deze specifieke casus",
+    "Uitleg waarom dimension5 relevant is voor deze specifieke casus"
   ],
   "stakeholders": [
     {
@@ -69,8 +72,9 @@ Geef de output in het volgende JSON formaat:
   ]
 }
 
-Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieven. Maak de casus complex genoeg voor een goede discussie, maar wel begrijpelijk. Gebruik Nederlandse taal en zorg dat de casus relevant is voor de Nederlandse context.`;
+BELANGRIJK: Het aantal correctDimensions moet tussen 3 en 5 liggen. Selecteer alleen dimensies die echt ondubbelzinnig relevant zijn. Het aantal explanations moet exact gelijk zijn aan het aantal correctDimensions.
 
+Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieven. Maak de casus complex genoeg voor een goede discussie, maar wel begrijpelijk. Gebruik Nederlandse taal en zorg dat de casus relevant is voor de Nederlandse context.`;
   try {
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
