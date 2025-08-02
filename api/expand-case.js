@@ -34,11 +34,17 @@ export default async function handler(req, res) {
 
 En de volgende geselecteerde ethische spanningsvelden: ${selectedDimensions.join(', ')}
 
-Breid de casus uit met specifieke details en voorbeelden die deze ethische spanningsvelden belichten. Voeg concrete situaties, dilemma's en uitdagingen toe die relevant zijn voor de geselecteerde dimensies.
+Breid de casus uit tot een evenwichtige beschrijving die zowel de kansen als de risico's belicht van de geselecteerde ethische spanningsvelden. Maak het een genuanceerd verhaal dat tot discussie uitnodigt.
 
+BELANGRIJK:
+1. Houd de uitbreiding beknopt (300-400 woorden)
+2. Toon ZOWEL positieve kansen ALS potentiële risico's
+3. Maak het een echt dilemma: geen duidelijk "goed" of "fout" antwoord
+4. Voeg concrete details toe die de ethische spanningsvelden illustreren
+5. Creëer ruimte voor discussie over wenselijkheid van de ontwikkeling
 Geef de output in het volgende JSON formaat:
 {
-  "expandedCase": "Een uitgebreide versie van de casus (300-400 woorden) die specifiek ingaat op de geselecteerde ethische spanningsvelden. Maak de dilemma's nu WEL expliciet en geef concrete voorbeelden van hoe deze ethische uitdagingen zich manifesteren in de praktijk."
+  "expandedCase": "Een uitgebreide, evenwichtige versie van de casus (300-400 woorden) die zowel kansen als risico's belicht. Toon concrete voorbeelden van hoe de ethische spanningsvelden zich manifesteren, maar presenteer het als een genuanceerd dilemma zonder duidelijke 'goede' of 'foute' keuze. Maak het uitnodigend voor discussie over de wenselijkheid."
 }
 
 Gebruik Nederlandse taal en zorg dat de uitbreiding naadloos aansluit op de originele casus.`;
