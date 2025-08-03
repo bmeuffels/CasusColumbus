@@ -371,12 +371,19 @@ function App() {
       });
 
       if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+        console.error(`API Error: ${response.status}`);
+        // Fallback: use original case and continue
+        setResult(prev => prev ? {
+          ...prev,
+          expandedCase: prev.compactCase || prev.case
+        } : null);
+        setCurrentPage('stakeholders');
+        return;
       }
 
       const expandedResult = await response.json();
       
-      if (expandedResult.expandedCase) {
+      if (expandedResult.expandedCase && expandedResult.expandedCase.trim()) {
         setResult(prev => prev ? {
           ...prev,
           expandedCase: expandedResult.expandedCase
@@ -781,7 +788,7 @@ function App() {
                   {isExpandingCase ? (
                     <>
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Casus wordt uitgebreid...</span>
+                      <span>Wordt geladen...</span>
                     </>
                   ) : (
                     <>
@@ -798,7 +805,7 @@ function App() {
           /* Stakeholders Page */
           <div className="space-y-8">
             {/* Expanded Case Description */}
-            {result && (result.expandedCase || result.compactCase || result.case) && (
+            {result && (
               <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
@@ -817,11 +824,19 @@ function App() {
                   </div>
                 </div>
                 
-                <div className="prose prose-lg max-w-none">
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {result.expandedCase || result.compactCase || result.case}
-                  </p>
-                </div>
+                {(result.expandedCase || result.compactCase || result.case) ? (
+                  <div className="prose prose-lg max-w-none">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {result.expandedCase || result.compactCase || result.case}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <p className="text-yellow-800">
+                      De casus wordt geladen... Als dit bericht blijft staan, ga dan terug naar de vorige pagina en probeer opnieuw.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
