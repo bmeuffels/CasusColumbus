@@ -30,6 +30,10 @@ export default async function handler(req, res) {
 
   const prompt = `Genereer een realistische ethische casus voor professionals uit ${selectedFields.join(', ')} over ${selectedTopics.join(', ')}.
 
+${caseTitle ? `CASUS TITEL: "${caseTitle}"
+Baseer de casus op deze titel en zorg dat de inhoud aansluit bij wat de titel suggereert.
+
+` : ''}BELANGRIJK: 
 BELANGRIJK: 
 1. Maak de casus beschrijving compact maar wel inhoudelijk duidend genoeg zodat de belangrijkste ethische pijnpunten af te leiden zijn
 2. Beschrijf de pijnpunten NIET expliciet - de gebruiker moet ze zelf kunnen identificeren
