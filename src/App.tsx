@@ -50,6 +50,11 @@ interface CaseResult {
   }>;
 }
 
+interface CaseTitle {
+  title: string;
+  description: string;
+  techTopic: string;
+}
 interface EthicalDimension {
   id: string;
   name: string;
@@ -247,9 +252,11 @@ function App() {
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedDimensions, setSelectedDimensions] = useState<string[]>([]);
+  const [caseTitles, setCaseTitles] = useState<CaseTitle[]>([]);
+  const [isGeneratingTitles, setIsGeneratingTitles] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<CaseResult | null>(null);
-  const [currentPage, setCurrentPage] = useState<'selection' | 'case' | 'stakeholders'>('selection');
+  const [currentPage, setCurrentPage] = useState<'selection' | 'titles' | 'case' | 'stakeholders'>('selection');
   const [isExpandingCase, setIsExpandingCase] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
@@ -300,7 +307,7 @@ function App() {
   const generateCase = async () => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
-    setIsGenerating(true);
+    setIsGeneratingTitles(true);
 
     const selectedFieldNames = selectedFields.map(id => 
       WORK_FIELDS.find(f => f.id === id)?.name
@@ -310,6 +317,43 @@ function App() {
       TECH_TOPICS.find(t => t.id === id)?.name
     ).join(', ');
 
+    try {
+      const response = await fetch('/api/generate-titles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          selectedFields: selectedFieldNames.split(', '),
+          selectedTopics: selectedTopicNames.split(', '),
+          allTopics: TECH_TOPICS.map(t => t.name)
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setCaseTitles(result.caseTitles || []);
+      setCurrentPage('titles');
+    } catch (error) {
+      console.error('Error generating titles:', error);
+      // Fallback: go directly to case generation
+      await generateCaseFromTitle('Algemene ethische casus', selectedTopicNames);
+    } finally {
+      setIsGeneratingTitles(false);
+    }
+  };
+
+  const generateCaseFromTitle = async (selectedTitle: string, techTopic: string) => {
+    if (selectedFields.length === 0 || selectedTopics.length === 0) return;
+
+    setIsGenerating(true);
+
+    const selectedFieldNames = selectedFields.map(id => 
+      WORK_FIELDS.find(f => f.id === id)?.name
+    ).join(', ');
 
     try {
       const response = await fetch('/api/generate-case', {
@@ -319,7 +363,8 @@ function App() {
         },
         body: JSON.stringify({
           selectedFields: selectedFieldNames.split(', '),
-          selectedTopics: selectedTopicNames.split(', ')
+          selectedTopics: [techTopic],
+          caseTitle: selectedTitle
         })
       });
 
@@ -415,6 +460,7 @@ function App() {
     setSelectedFields([]);
     setSelectedTopics([]);
     setSelectedDimensions([]);
+    setCaseTitles([]);
     setResult(null);
     setShowFeedback(false);
     setRequiredSelections(3);
@@ -560,22 +606,22 @@ function App() {
               <div className="text-center">
                 <button
                   onClick={generateCase}
-                  disabled={isGenerating}
+                  disabled={isGeneratingTitles}
                   className={`inline-flex items-center space-x-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg shadow-xl transition-all duration-300 transform hover:scale-105 ${
-                    isGenerating
+                    isGeneratingTitles
                       ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-200'
                   }`}
                 >
-                  {isGenerating ? (
+                  {isGeneratingTitles ? (
                     <>
                       <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>Casus wordt gegenereerd...</span>
+                      <span>Casus opties worden geladen...</span>
                     </>
                   ) : (
                     <>
                       <Sparkles className="w-6 h-6" />
-                      <span>Genereer Ethische Casus</span>
+                      <span>Toon Casus Opties</span>
                       <ArrowRight className="w-6 h-6" />
                     </>
                   )}
@@ -583,7 +629,6 @@ function App() {
               </div>
             )}
           </div>
-        ) : currentPage === 'case' ? (
           /* Case Display with Ethical Compass */
           <div className="space-y-8">
             {/* Compact Case Description */}
