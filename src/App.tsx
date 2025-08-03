@@ -739,14 +739,6 @@ function App() {
             </div>
 
             {/* Loading State */}
-            {isGenerating && (
-              <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8 text-center">
-                <div className="flex items-center justify-center space-x-3">
-                  <div className="w-8 h-8 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
-                  <span className="text-lg font-medium text-gray-700">Casus wordt gegenereerd...</span>
-                </div>
-              </div>
-            )}
 
             {/* Back Button */}
             <div className="flex justify-center space-x-4">
@@ -951,11 +943,11 @@ function App() {
             {/* Action Buttons */}
             <div className="flex justify-center space-x-4">
               <button
-                onClick={() => setCurrentPage('selection')}
+                onClick={() => setCurrentPage('titles')}
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
               >
                 <ArrowRight className="w-5 h-5 rotate-180" />
-                <span>Terug naar Selectie</span>
+                <span>Terug naar Casus Titels</span>
               </button>
               
               {selectedDimensions.length === requiredSelections && !showFeedback && (
