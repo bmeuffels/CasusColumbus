@@ -42,6 +42,7 @@ BELANGRIJK:
 3. Maak het een echt dilemma: geen duidelijk "goed" of "fout" antwoord
 4. Voeg concrete details toe die de ethische spanningsvelden illustreren
 5. Creëer ruimte voor discussie over wenselijkheid van de ontwikkeling
+
 Geef de output in het volgende JSON formaat:
 {
   "expandedCase": "Een uitgebreide, evenwichtige versie van de casus (300-400 woorden) die zowel kansen als risico's belicht. Toon concrete voorbeelden van hoe de ethische spanningsvelden zich manifesteren, maar presenteer het als een genuanceerd dilemma zonder duidelijke 'goede' of 'foute' keuze. Maak het uitnodigend voor discussie over de wenselijkheid."
