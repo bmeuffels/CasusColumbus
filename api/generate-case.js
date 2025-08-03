@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { selectedFields, selectedTopics } = req.body;
+  const { selectedFields, selectedTopics, caseTitle } = req.body;
 
   if (!selectedFields || !selectedTopics || selectedFields.length === 0 || selectedTopics.length === 0) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -34,7 +34,6 @@ ${caseTitle ? `CASUS TITEL: "${caseTitle}"
 Baseer de casus op deze titel en zorg dat de inhoud aansluit bij wat de titel suggereert.
 
 ` : ''}BELANGRIJK: 
-BELANGRIJK: 
 1. Maak de casus beschrijving compact maar wel inhoudelijk duidend genoeg zodat de belangrijkste ethische pijnpunten af te leiden zijn
 2. Beschrijf de pijnpunten NIET expliciet - de gebruiker moet ze zelf kunnen identificeren
 3. Analyseer de casus grondig en bepaal welke ethische dimensies ECHT het meest relevant zijn (minimaal 3, maximaal 5)
@@ -79,6 +78,7 @@ Geef de output in het volgende JSON formaat:
 BELANGRIJK: Het aantal correctDimensions moet tussen 3 en 5 liggen. Selecteer alleen dimensies die echt ondubbelzinnig relevant zijn. Het aantal explanations moet exact gelijk zijn aan het aantal correctDimensions.
 
 Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieven. Maak de casus complex genoeg voor een goede discussie, maar wel begrijpelijk. Gebruik Nederlandse taal en zorg dat de casus relevant is voor de Nederlandse context.`;
+
   try {
     const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
