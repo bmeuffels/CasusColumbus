@@ -55,6 +55,10 @@ interface CaseTitle {
   description: string;
   techTopic: string;
 }
+
+interface SelectedCaseTitle extends CaseTitle {
+  index: number;
+}
 interface EthicalDimension {
   id: string;
   name: string;
@@ -253,6 +257,7 @@ function App() {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedDimensions, setSelectedDimensions] = useState<string[]>([]);
   const [caseTitles, setCaseTitles] = useState<CaseTitle[]>([]);
+  const [selectedCaseTitle, setSelectedCaseTitle] = useState<SelectedCaseTitle | null>(null);
   const [isGeneratingTitles, setIsGeneratingTitles] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<CaseResult | null>(null);
@@ -461,6 +466,7 @@ function App() {
     setSelectedTopics([]);
     setSelectedDimensions([]);
     setCaseTitles([]);
+    setSelectedCaseTitle(null);
     setResult(null);
     setShowFeedback(false);
     setRequiredSelections(3);
@@ -671,14 +677,20 @@ function App() {
                   {caseTitles.slice(0, 6).map((caseTitle, index) => (
                     <button
                       key={index}
-                      onClick={() => generateCaseFromTitle(caseTitle.title, caseTitle.techTopic)}
-                      disabled={isGenerating}
-                      className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setSelectedCaseTitle({ ...caseTitle, index })}
+                      className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                        selectedCaseTitle?.index === index
+                          ? 'border-blue-500 bg-blue-50 shadow-lg'
+                          : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
+                      }`}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg group-hover:scale-110 transition-transform">
                           <FileText className="w-6 h-6" />
                         </div>
+                        {selectedCaseTitle?.index === index && (
+                          <CheckCircle className="w-6 h-6 text-blue-600" />
+                        )}
                         <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
                           {caseTitle.techTopic}
                         </span>
@@ -700,14 +712,20 @@ function App() {
                   {caseTitles.slice(6, 12).map((caseTitle, index) => (
                     <button
                       key={index + 6}
-                      onClick={() => generateCaseFromTitle(caseTitle.title, caseTitle.techTopic)}
-                      disabled={isGenerating}
-                      className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => setSelectedCaseTitle({ ...caseTitle, index: index + 6 })}
+                      className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                        selectedCaseTitle?.index === index + 6
+                          ? 'border-emerald-500 bg-emerald-50 shadow-lg'
+                          : 'border-gray-200 bg-white/80 hover:border-emerald-300 hover:bg-emerald-50/50'
+                      }`}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg group-hover:scale-110 transition-transform">
                           <FileText className="w-6 h-6" />
                         </div>
+                        {selectedCaseTitle?.index === index + 6 && (
+                          <CheckCircle className="w-6 h-6 text-emerald-600" />
+                        )}
                         <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium">
                           {caseTitle.techTopic}
                         </span>
@@ -731,7 +749,7 @@ function App() {
             )}
 
             {/* Back Button */}
-            <div className="flex justify-center">
+            <div className="flex justify-center space-x-4">
               <button
                 onClick={() => setCurrentPage('selection')}
                 disabled={isGenerating}
@@ -740,6 +758,31 @@ function App() {
                 <ArrowRight className="w-5 h-5 rotate-180" />
                 <span>Terug naar Selectie</span>
               </button>
+              
+              {selectedCaseTitle && (
+                <button
+                  onClick={() => generateCaseFromTitle(selectedCaseTitle.title, selectedCaseTitle.techTopic)}
+                  disabled={isGenerating}
+                  className={`flex items-center space-x-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                    isGenerating
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-200'
+                  }`}
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Casus wordt gegenereerd...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-6 h-6" />
+                      <span>Kies deze casus</span>
+                      <ArrowRight className="w-6 h-6" />
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         )}
