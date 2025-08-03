@@ -354,6 +354,11 @@ function App() {
   const generateCaseFromTitle = async (selectedTitle: string, techTopic: string) => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
+    // Reset compass state for new case
+    setSelectedDimensions([]);
+    setShowFeedback(false);
+    setRequiredSelections(3);
+
     setIsGenerating(true);
 
     const selectedFieldNames = selectedFields.map(id => 
