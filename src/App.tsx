@@ -629,7 +629,122 @@ function App() {
               </div>
             )}
           </div>
-          /* Case Display with Ethical Compass */
+        ) : null}
+        
+        {currentPage === 'titles' && (
+          <div className="space-y-8">
+            {/* Case Titles Selection */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <FileText className="w-7 h-7 text-blue-600" />
+                  Kies je Casus
+                </h2>
+                <p className="text-gray-600">Selecteer een casus die je interessant lijkt voor verdere uitwerking.</p>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {selectedFields.map(fieldId => {
+                    const field = WORK_FIELDS.find(f => f.id === fieldId);
+                    return field ? (
+                      <span key={fieldId} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {field.name}
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedTopics.map(topicId => {
+                    const topic = TECH_TOPICS.find(t => t.id === topicId);
+                    return topic ? (
+                      <span key={topicId} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                        {topic.name}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+
+              {/* Primary Cases - From Selected Topic */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-600" />
+                  Casussen uit jouw gekozen onderwerp
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {caseTitles.slice(0, 6).map((caseTitle, index) => (
+                    <button
+                      key={index}
+                      onClick={() => generateCaseFromTitle(caseTitle.title, caseTitle.techTopic)}
+                      disabled={isGenerating}
+                      className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
+                          {caseTitle.techTopic}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-gray-800 mb-2">{caseTitle.title}</h3>
+                      <p className="text-sm text-gray-600">{caseTitle.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Alternative Cases - From Other Topics */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-emerald-600" />
+                  Verrassende casussen uit andere onderwerpen
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {caseTitles.slice(6, 12).map((caseTitle, index) => (
+                    <button
+                      key={index + 6}
+                      onClick={() => generateCaseFromTitle(caseTitle.title, caseTitle.techTopic)}
+                      disabled={isGenerating}
+                      className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium">
+                          {caseTitle.techTopic}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-gray-800 mb-2">{caseTitle.title}</h3>
+                      <p className="text-sm text-gray-600">{caseTitle.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Loading State */}
+            {isGenerating && (
+              <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8 text-center">
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="w-8 h-8 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
+                  <span className="text-lg font-medium text-gray-700">Casus wordt gegenereerd...</span>
+                </div>
+              </div>
+            )}
+
+            {/* Back Button */}
+            <div className="flex justify-center">
+              <button
+                onClick={() => setCurrentPage('selection')}
+                disabled={isGenerating}
+                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Selectie</span>
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {currentPage === 'case' && (
           <div className="space-y-8">
             {/* Compact Case Description */}
             <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
@@ -846,8 +961,9 @@ function App() {
               )}
             </div>
           </div>
-        ) : (
-          /* Stakeholders Page */
+        )}
+        
+        {currentPage === 'stakeholders' && (
           <div className="space-y-8">
             {/* Expanded Case Description */}
             {result && (
