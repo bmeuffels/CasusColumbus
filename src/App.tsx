@@ -3,7 +3,6 @@ import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSou
 import { 
   Users as UsersIcon,
   Laptop, 
-  Shield, 
   Heart, 
   GraduationCap, 
   Building, 
