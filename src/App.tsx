@@ -1,7 +1,6 @@
 import { ChevronRight, RotateCcw, Users, CheckCircle, AlertCircle, Lightbulb, ArrowLeft, Sparkles, Volume2 } from 'lucide-react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
-  Users, 
   Brain, 
   Laptop, 
   Shield, 
