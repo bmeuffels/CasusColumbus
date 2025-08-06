@@ -40,13 +40,16 @@ class SoundEffects {
     if (!ctx) return;
 
     try {
-      // Create a realistic wooden creak/scrape sound
+      // Create realistic wooden ship creak with rope friction
       const oscillator = ctx.createOscillator();
       const oscillator2 = ctx.createOscillator();
+      const oscillator3 = ctx.createOscillator();
       const gainNode = ctx.createGain();
       const gainNode2 = ctx.createGain();
+      const gainNode3 = ctx.createGain();
       const filterNode = ctx.createBiquadFilter();
-      const noiseBuffer = this.createNoiseBuffer(ctx, 0.1);
+      const filterNode2 = ctx.createBiquadFilter();
+      const noiseBuffer = this.createWoodNoiseBuffer(ctx, 0.15);
       const noiseSource = ctx.createBufferSource();
       const noiseGain = ctx.createGain();
       const noiseFilter = ctx.createBiquadFilter();
@@ -58,60 +61,82 @@ class SoundEffects {
         noiseGain.connect(ctx.destination);
       }
 
-      // Connect oscillator nodes
+      // Connect oscillators for complex wood texture
       oscillator.connect(filterNode);
-      oscillator2.connect(filterNode);
+      oscillator2.connect(filterNode2);
+      oscillator3.connect(filterNode);
       filterNode.connect(gainNode);
-      filterNode.connect(gainNode2);
+      filterNode2.connect(gainNode2);
+      filterNode.connect(gainNode3);
       gainNode.connect(ctx.destination);
       gainNode2.connect(ctx.destination);
+      gainNode3.connect(ctx.destination);
 
-      // Configure wooden creak sound - two oscillators for complexity
-      oscillator.type = 'sawtooth';
-      oscillator2.type = 'square';
+      // Configure realistic ship wood creak - three layers
+      oscillator.type = 'sawtooth';  // Main wood fiber stress
+      oscillator2.type = 'triangle'; // Wood grain resonance
+      oscillator3.type = 'square';   // Sharp crack component
       
-      // Main creak frequency sweep
-      oscillator.frequency.setValueAtTime(180, ctx.currentTime);
-      oscillator.frequency.linearRampToValueAtTime(220, ctx.currentTime + 0.02);
-      oscillator.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.15);
+      // Main wood stress creak (deep to high stress, then release)
+      oscillator.frequency.setValueAtTime(95, ctx.currentTime);
+      oscillator.frequency.linearRampToValueAtTime(280, ctx.currentTime + 0.03);
+      oscillator.frequency.exponentialRampToValueAtTime(45, ctx.currentTime + 0.25);
       
-      // Secondary harmonic for wood texture
-      oscillator2.frequency.setValueAtTime(360, ctx.currentTime);
-      oscillator2.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 0.12);
+      // Wood grain resonance (slower, deeper)
+      oscillator2.frequency.setValueAtTime(140, ctx.currentTime);
+      oscillator2.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 0.2);
+      
+      // Sharp crack/snap component (brief)
+      oscillator3.frequency.setValueAtTime(450, ctx.currentTime);
+      oscillator3.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.08);
 
-      // Heavy filtering for wooden, muffled tone
+      // Heavy filtering for authentic wood resonance
       filterNode.type = 'lowpass';
-      filterNode.frequency.setValueAtTime(400, ctx.currentTime);
-      filterNode.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.1);
-      filterNode.Q.setValueAtTime(3, ctx.currentTime);
+      filterNode.frequency.setValueAtTime(320, ctx.currentTime);
+      filterNode.frequency.exponentialRampToValueAtTime(150, ctx.currentTime + 0.2);
+      filterNode.Q.setValueAtTime(4, ctx.currentTime);
+      
+      // Secondary filter for grain resonance
+      filterNode2.type = 'bandpass';
+      filterNode2.frequency.setValueAtTime(180, ctx.currentTime);
+      filterNode2.Q.setValueAtTime(8, ctx.currentTime);
 
-      // Noise component for scraping texture
+      // Rope/wood friction noise
       if (noiseBuffer) {
         noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.setValueAtTime(300, ctx.currentTime);
-        noiseFilter.Q.setValueAtTime(10, ctx.currentTime);
+        noiseFilter.frequency.setValueAtTime(250, ctx.currentTime);
+        noiseFilter.frequency.linearRampToValueAtTime(180, ctx.currentTime + 0.1);
+        noiseFilter.Q.setValueAtTime(12, ctx.currentTime);
         
         noiseGain.gain.setValueAtTime(0, ctx.currentTime);
-        noiseGain.gain.linearRampToValueAtTime(0.03, ctx.currentTime + 0.01);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        noiseGain.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.02);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
         
         noiseSource.start(ctx.currentTime);
-        noiseSource.stop(ctx.currentTime + 0.08);
+        noiseSource.stop(ctx.currentTime + 0.12);
       }
 
-      // Envelope for wooden creak
+      // Main wood stress envelope (slow attack, long decay)
       gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.02);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      gainNode.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.04);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
       
+      // Wood grain resonance envelope
       gainNode2.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode2.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.01);
-      gainNode2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+      gainNode2.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.03);
+      gainNode2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+      
+      // Sharp crack envelope (quick attack, fast decay)
+      gainNode3.gain.setValueAtTime(0, ctx.currentTime);
+      gainNode3.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.005);
+      gainNode3.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
 
       oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.18);
+      oscillator.stop(ctx.currentTime + 0.28);
       oscillator2.start(ctx.currentTime);
-      oscillator2.stop(ctx.currentTime + 0.15);
+      oscillator2.stop(ctx.currentTime + 0.22);
+      oscillator3.start(ctx.currentTime);
+      oscillator3.stop(ctx.currentTime + 0.08);
     } catch (error) {
       console.warn('Error playing select sound:', error);
     }
@@ -123,11 +148,13 @@ class SoundEffects {
     if (!ctx) return;
 
     try {
-      // Create a deeper wood settling sound
+      // Create realistic wood settling with rope release
       const oscillator = ctx.createOscillator();
+      const oscillator2 = ctx.createOscillator();
       const gainNode = ctx.createGain();
+      const gainNode2 = ctx.createGain();
       const filterNode = ctx.createBiquadFilter();
-      const noiseBuffer = this.createNoiseBuffer(ctx, 0.08);
+      const noiseBuffer = this.createWoodNoiseBuffer(ctx, 0.12);
       const noiseSource = ctx.createBufferSource();
       const noiseGain = ctx.createGain();
       const noiseFilter = ctx.createBiquadFilter();
@@ -140,37 +167,57 @@ class SoundEffects {
       }
 
       oscillator.connect(filterNode);
+      oscillator2.connect(filterNode);
       filterNode.connect(gainNode);
+      filterNode.connect(gainNode2);
       gainNode.connect(ctx.destination);
+      gainNode2.connect(ctx.destination);
 
-      // Deeper wood settling sound
+      // Deep wood settling with harmonic
       oscillator.type = 'sawtooth';
-      oscillator.frequency.setValueAtTime(120, ctx.currentTime);
-      oscillator.frequency.exponentialRampToValueAtTime(60, ctx.currentTime + 0.2);
+      oscillator2.type = 'triangle';
+      
+      // Main settling frequency (wood relaxing)
+      oscillator.frequency.setValueAtTime(85, ctx.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 0.3);
+      
+      // Harmonic settling
+      oscillator2.frequency.setValueAtTime(170, ctx.currentTime);
+      oscillator2.frequency.exponentialRampToValueAtTime(70, ctx.currentTime + 0.25);
 
       filterNode.type = 'lowpass';
-      filterNode.frequency.setValueAtTime(250, ctx.currentTime);
-      filterNode.Q.setValueAtTime(2, ctx.currentTime);
+      filterNode.frequency.setValueAtTime(200, ctx.currentTime);
+      filterNode.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.2);
+      filterNode.Q.setValueAtTime(3, ctx.currentTime);
 
-      // Subtle noise for texture
+      // Rope/wood friction release
       if (noiseBuffer) {
         noiseFilter.type = 'lowpass';
-        noiseFilter.frequency.setValueAtTime(200, ctx.currentTime);
+        noiseFilter.frequency.setValueAtTime(150, ctx.currentTime);
+        noiseFilter.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.15);
         
         noiseGain.gain.setValueAtTime(0, ctx.currentTime);
-        noiseGain.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 0.03);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        noiseGain.gain.linearRampToValueAtTime(0.025, ctx.currentTime + 0.04);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
         
         noiseSource.start(ctx.currentTime);
-        noiseSource.stop(ctx.currentTime + 0.15);
+        noiseSource.stop(ctx.currentTime + 0.18);
       }
 
+      // Main settling envelope
       gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.06, ctx.currentTime + 0.03);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+      gainNode.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.05);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.32);
+      
+      // Harmonic envelope
+      gainNode2.gain.setValueAtTime(0, ctx.currentTime);
+      gainNode2.gain.linearRampToValueAtTime(0.04, ctx.currentTime + 0.04);
+      gainNode2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.28);
 
       oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 0.22);
+      oscillator.stop(ctx.currentTime + 0.32);
+      oscillator2.start(ctx.currentTime);
+      oscillator2.stop(ctx.currentTime + 0.28);
     } catch (error) {
       console.warn('Error playing deselect sound:', error);
     }
@@ -267,21 +314,30 @@ class SoundEffects {
   }
 
   // Helper method to create noise buffer for texture
-  private createNoiseBuffer(ctx: AudioContext, duration: number): AudioBuffer | null {
+  private createWoodNoiseBuffer(ctx: AudioContext, duration: number): AudioBuffer | null {
     try {
       const sampleRate = ctx.sampleRate;
       const bufferSize = sampleRate * duration;
       const buffer = ctx.createBuffer(1, bufferSize, sampleRate);
       const data = buffer.getChannelData(0);
       
-      // Generate filtered noise for wood texture
+      // Generate realistic wood/rope friction noise
+      let lastValue = 0;
       for (let i = 0; i < bufferSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * 0.1;
+        // Create correlated noise for more realistic wood texture
+        const white = (Math.random() * 2 - 1);
+        const brown = (lastValue + (0.02 * white)) / 1.02;
+        lastValue = brown;
+        
+        // Add occasional sharp spikes for wood fiber snaps
+        const spike = Math.random() < 0.001 ? (Math.random() * 0.3) : 0;
+        
+        data[i] = (brown * 0.8 + spike) * 0.15;
       }
       
       return buffer;
     } catch (error) {
-      console.warn('Could not create noise buffer:', error);
+      console.warn('Could not create wood noise buffer:', error);
       return null;
     }
   }

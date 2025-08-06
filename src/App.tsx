@@ -572,7 +572,7 @@ function App() {
                     key={field.id}
                     onClick={() => toggleField(field.id)}
                     onClick={() => {
-                      const wasSelected = selectedCaseTitle?.index === index;
+                      handleFieldToggle(field.id);
                       if (wasSelected) {
                         playDeselectSound();
                         setSelectedCaseTitle(null);
