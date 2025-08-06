@@ -576,7 +576,7 @@ function App() {
           </div>
         </div>
       </header>
-
+          {(selectedFields.length > 0 || selectedTopics.length > 0 || selectedCase || showStakeholders) && (
       <main className="max-w-7xl mx-auto px-6 py-8 relative z-10">
         {currentPage === 'selection' ? (
           <div className="space-y-8">
