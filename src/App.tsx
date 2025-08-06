@@ -826,7 +826,6 @@ function App() {
               {selectedCaseTitle && (
                 <button
                   onClick={() => {
-                    playConfirmSound();
                     generateCaseFromTitle(selectedCaseTitle.title, selectedCaseTitle.techTopic);
                   }}
                   disabled={isGenerating}
