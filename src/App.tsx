@@ -537,13 +537,6 @@ function App() {
                   src="https://uca40e2e7968751e358787b8514d.previews.dropboxusercontent.com/p/thumb/ACvvuRSMAx1PGgNAvH7JI6U6L7zJo-QsyKJfcIWEydCKrZWOb3ERhhF181olVeYRuoPb1aZvAjUjwhelQoDArC-4fe5DOj070I3-4PerbSgAWxhFjpe-LqKqGpCMQKvfKUdGwkX-m21TNclrkN9sUVgFkv9vVTIh4LB7e-T4h8-KBbpH8UK5hf-iqzQrvNJ1n2JT6t0oUhKBjqBiHCI2Ocfllh6V_1gtI3lbsmF0-j3Uo-KOoPHM8tAlnaXuKXrBhcmOgEkwydjF9EWsbPKnMlpBFwMv3eXoNQ7Ao-idF1weVCli9rRI926K6Sqi3l431vHF_nSGB0F7349V3f0l7MnRQNzSa_M_AP1ZKRwCd9mg4Q/p.jpeg"
                   alt="Casus Columbus Logo"
                   className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                  Casus Columbus
-            {/* Opnieuw knop - alleen zichtbaar als er een casus is geselecteerd */}
-            {selectedCase && (
               <button
                 onClick={handleRestart}
                 className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white font-medium"
@@ -552,6 +545,13 @@ function App() {
                 Opnieuw
               </button>
             )}
+            <button
+              onClick={handleMuteToggle}
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 group"
+              title="Geluid aan/uit"
+            >
+              <Volume2 className="w-5 h-5 text-white group-hover:text-yellow-300" />
+            </button>
             
                 </h1>
                 <p className="text-gray-600 text-sm flex items-center gap-2">
