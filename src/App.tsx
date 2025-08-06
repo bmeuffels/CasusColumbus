@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { ChevronRight, RotateCcw, Users, CheckCircle, AlertCircle, Lightbulb, ArrowLeft, Sparkles, Volume2 } from 'lucide-react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
   Users, 
@@ -554,13 +554,23 @@ function App() {
                 onClick={() => {
                   playNavigationSound();
                   resetForm();
-                }}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-blue-200 hover:border-blue-300"
+            <>
+              <button
+                onClick={handleReset}
+                className="absolute right-16 top-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
               >
-                <RefreshCw className="w-4 h-4" />
-                <span className="text-sm font-medium">Opnieuw</span>
+                <RotateCcw className="w-4 h-4" />
+                Opnieuw
               </button>
-            )}
+              
+              {/* Mute button - always visible when reset is visible */}
+              <button
+                className="absolute right-4 top-4 bg-gray-600 hover:bg-gray-700 text-white w-10 h-10 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                title="Geluid aan/uit"
+              >
+                <Volume2 className="w-5 h-5" />
+              </button>
+            </>
           </div>
         </div>
       </header>
