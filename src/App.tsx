@@ -571,20 +571,6 @@ function App() {
                   <button
                     key={field.id}
                     onClick={() => toggleField(field.id)}
-                    onClick={() => {
-                      if (selectedFields.includes(field.id)) {
-                        playDeselectSound();
-                      } else {
-                        playSelectSound();
-                      }
-                      if (wasSelected) {
-                        playDeselectSound();
-                        setSelectedCaseTitle(null);
-                      } else {
-                        playSelectSound();
-                        setSelectedCaseTitle({ ...caseTitle, index });
-                      }
-                    }}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedFields.includes(field.id)
                         ? 'border-blue-500 bg-blue-50 shadow-lg'
@@ -717,7 +703,16 @@ function App() {
                   {caseTitles.slice(0, 6).map((caseTitle, index) => (
                     <button
                       key={index}
-                      onClick={() => setSelectedCaseTitle({ ...caseTitle, index })}
+                      onClick={() => {
+                        const wasSelected = selectedCaseTitle?.index === index;
+                        if (wasSelected) {
+                          playDeselectSound();
+                          setSelectedCaseTitle(null);
+                        } else {
+                          playSelectSound();
+                          setSelectedCaseTitle({ ...caseTitle, index });
+                        }
+                      }}
                       className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                         selectedCaseTitle?.index === index
                           ? 'border-blue-500 bg-blue-50 shadow-lg'
@@ -752,7 +747,16 @@ function App() {
                   {caseTitles.slice(6, 12).map((caseTitle, index) => (
                     <button
                       key={index + 6}
-                      onClick={() => setSelectedCaseTitle({ ...caseTitle, index: index + 6 })}
+                      onClick={() => {
+                        const wasSelected = selectedCaseTitle?.index === index + 6;
+                        if (wasSelected) {
+                          playDeselectSound();
+                          setSelectedCaseTitle(null);
+                        } else {
+                          playSelectSound();
+                          setSelectedCaseTitle({ ...caseTitle, index: index + 6 });
+                        }
+                      }}
                       className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                         selectedCaseTitle?.index === index + 6
                           ? 'border-emerald-500 bg-emerald-50 shadow-lg'
