@@ -269,15 +269,6 @@ function App() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
 
-  const handleRestart = () => {
-    playNavigationSound();
-    resetForm();
-  };
-
-  const handleMuteToggle = () => {
-    // Implement mute toggle functionality
-  };
-
   const toggleField = (fieldId: string) => {
     const wasSelected = selectedFields.includes(fieldId);
     setSelectedFields(prev => {
@@ -550,18 +541,12 @@ function App() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                  Casus Columbus
-                </h1>
-                <p className="text-gray-600 text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-400" />
-                  Ethiek & Technologie Casus Generator voor professionals
-                </p>
+                <h1 className="text-2xl font-bold text-gray-800">Casus Columbus</h1>
+                <p className="text-sm text-gray-600">Ethische Technologie Verkenner</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center space-x-3">
               <button
-                onClick={handleMuteToggle}
                 className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
                 title="Geluid aan/uit"
               >
@@ -569,7 +554,10 @@ function App() {
               </button>
               {(selectedFields.length > 0 || selectedTopics.length > 0 || currentPage !== 'selection') && (
                 <button
-                  onClick={handleRestart}
+                  onClick={() => {
+                    playNavigationSound();
+                    resetForm();
+                  }}
                   className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-blue-200 hover:border-blue-300"
                 >
                   <RefreshCw className="w-4 h-4" />
