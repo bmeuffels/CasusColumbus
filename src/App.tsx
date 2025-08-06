@@ -703,6 +703,7 @@ function App() {
                 <button
                   onClick={handleReset}
                   className="bg-gradient-to-r from-orange-500 to-yellow-400 hover:from-orange-600 hover:to-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"
+                  style={{ zIndex: 60 }}
                   title="Opnieuw beginnen"
                 >
                   <RotateCcw className="w-4 h-4" />
