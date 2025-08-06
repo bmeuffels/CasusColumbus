@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { BookOpen, Users, Target, Building2, Scale, Newspaper, Brain, Shield, Database, Zap, Eye, Leaf, RotateCcw, ArrowLeft, ArrowRight, CheckCircle, User, AlertTriangle, Lightbulb, TrendingUp, Clock, MapPin, FileText, Sparkles, Volume2, VolumeX } from 'lucide-react';
+import React, { useState } from 'react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
+  Users, 
   Brain, 
   Laptop, 
   Shield, 
@@ -258,7 +258,6 @@ function App() {
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedDimensions, setSelectedDimensions] = useState<string[]>([]);
   const [caseTitles, setCaseTitles] = useState<CaseTitle[]>([]);
-  const [isMuted, setIsMuted] = useState(false);
   const [selectedCaseTitle, setSelectedCaseTitle] = useState<SelectedCaseTitle | null>(null);
   const [isGeneratingTitles, setIsGeneratingTitles] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
