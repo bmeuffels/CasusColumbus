@@ -300,7 +300,7 @@ function App() {
     });
   };
 
-  const handleTopicToggle = (topicId: string) => {
+  const toggleTopic = (topicId: string) => {
     setSelectedTopics(prev => {
       if (prev.includes(topicId)) {
         playDeselectSound();
@@ -633,7 +633,8 @@ function App() {
                 {TECH_TOPICS.map((topic) => (
                   <button
                     key={topic.id}
-                    onClick={() => handleTopicToggle(topic.id)}
+                    onClick={() => toggleTopic(topic.id)}
+                    disabled={!selectedTopics.includes(topic.id) && selectedTopics.length >= 1}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedTopics.includes(topic.id)
                         ? 'border-indigo-500 bg-indigo-50 shadow-lg'
