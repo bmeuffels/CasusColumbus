@@ -539,7 +539,10 @@ function App() {
             
             {(selectedFields.length > 0 || selectedTopics.length > 0 || currentPage !== 'selection') && (
               <button
-                onClick={resetForm}
+                onClick={() => {
+                  playNavigationSound();
+                  resetForm();
+                }}
                 className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-blue-200 hover:border-blue-300"
               >
                 <RefreshCw className="w-4 h-4" />
