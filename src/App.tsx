@@ -590,7 +590,7 @@ function App() {
                         : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
                     }}
                   >
-                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${field.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${field.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
                         {field.icon}
                       </div>
