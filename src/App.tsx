@@ -7,7 +7,6 @@ import {
   GraduationCap, 
   Building, 
   Briefcase,
-  Zap,
   Globe,
   Database,
   Eye,
