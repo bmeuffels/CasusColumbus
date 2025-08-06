@@ -1,7 +1,7 @@
 import { BookOpen, Users, Target, Building2, Scale, Newspaper, Brain, Shield, Database, Zap, Eye, Leaf, RotateCcw, ArrowLeft, ArrowRight, CheckCircle, User, AlertTriangle, Lightbulb, TrendingUp, Clock, MapPin, FileText, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
-  Users, 
+  Users as UsersIcon,
   Brain, 
   Laptop, 
   Shield, 
