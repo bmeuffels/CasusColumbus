@@ -545,7 +545,7 @@ function App() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+            {(currentStep > 0 || selectedFields.length > 0 || selectedTopics.length > 0 || selectedCase || showStakeholders) && (
                   Casus Columbus
                 </h1>
                 <p className="text-gray-600 text-sm flex items-center gap-2">
@@ -553,7 +553,7 @@ function App() {
                   Ethiek & Technologie Casus Generator voor professionals
                 </p>
               </div>
-            </div>
+            )}
             
             <div className="flex items-center gap-3">
               <button
