@@ -547,8 +547,33 @@ function App() {
               <div>
             {/* Debug: Always show restart button for testing */}
             {true && (
-                  Casus Columbus
-                </h1>
+              <button
+                onClick={handleRestart}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white border border-white/20"
+                title="Opnieuw beginnen"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Opnieuw
+              </button>
+            )}
+
+            {/* Mute button - always visible on the right */}
+            <button
+              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white border border-white/20"
+              title="Geluid aan/uit"
+            >
+              <Volume2 className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-3">
+              <Compass className="w-10 h-10 text-orange-500" />
+              Casus Columbus
                 <p className="text-gray-600 text-sm flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-blue-400" />
                   Ethiek & Technologie Casus Generator voor professionals
