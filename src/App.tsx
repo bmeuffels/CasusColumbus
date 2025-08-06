@@ -268,11 +268,14 @@ function App() {
   const [isExpandingCase, setIsExpandingCase] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
-  const [selectedCase, setSelectedCase] = useState<any>(null);
 
   const handleRestart = () => {
-    setSelectedCase(null);
+    playNavigationSound();
     resetForm();
+  };
+
+  const handleMuteToggle = () => {
+    // Implement mute toggle functionality
   };
 
   const toggleField = (fieldId: string) => {
@@ -547,7 +550,7 @@ function App() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                   Casus Columbus
                 </h1>
                 <p className="text-gray-600 text-sm flex items-center gap-2">
@@ -557,18 +560,8 @@ function App() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {/* Opnieuw knop - alleen zichtbaar als er een casus is geselecteerd */}
-              {selectedCase && (
-                <button
-                  onClick={handleRestart}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white font-medium"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Opnieuw
-                </button>
-              )}
-              
               <button
+                onClick={handleMuteToggle}
                 className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
                 title="Geluid aan/uit"
               >
@@ -576,10 +569,7 @@ function App() {
               </button>
               {(selectedFields.length > 0 || selectedTopics.length > 0 || currentPage !== 'selection') && (
                 <button
-                  onClick={() => {
-                    playNavigationSound();
-                    resetForm();
-                  }}
+                  onClick={handleRestart}
                   className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-blue-200 hover:border-blue-300"
                 >
                   <RefreshCw className="w-4 h-4" />
