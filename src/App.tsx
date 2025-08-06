@@ -6,7 +6,6 @@ import {
   Heart, 
   GraduationCap, 
   Building, 
-  Scale, 
   Briefcase,
   Zap,
   Globe,
