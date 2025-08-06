@@ -437,9 +437,7 @@ function App() {
   const expandCase = async () => {
     if (!result) return;
 
-    if (!isMuted) {
-      playNavigationSound();
-    }
+    playNavigationSound();
     setIsExpandingCase(true);
 
     // Use correct dimensions instead of user selections
@@ -1061,6 +1059,7 @@ function App() {
                 <button
                   onClick={() => {
                     expandCase();
+                    playNavigationSound();
                   }}
                   disabled={isExpandingCase}
                   className={`flex items-center space-x-2 px-8 py-3 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
