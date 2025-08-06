@@ -288,16 +288,20 @@ function App() {
   };
 
   const toggleTopic = (topicId: string) => {
-    const wasSelected = selectedTopics.includes(topicId);
+    // Play sound first, then update state
+    if (selectedTopics.includes(topicId)) {
+      playDeselectSound();
+    } else {
+      playSelectSound();
+    }
+    
+    // Update state synchronously
     setSelectedTopics(prev => {
       if (prev.includes(topicId)) {
-        playDeselectSound();
         return prev.filter(id => id !== topicId);
       } else if (prev.length === 0) {
-        playSelectSound();
         return [topicId];
       } else {
-        playSelectSound();
         return [topicId];
       }
     });
