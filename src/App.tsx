@@ -19,8 +19,7 @@ import {
   FileText,
   UserCheck,
   Sparkles,
-  RefreshCw,
-  RotateCcw
+  RefreshCw
 } from 'lucide-react';
 
 interface WorkField {
@@ -338,11 +337,6 @@ function App() {
     setShowFeedback(false);
   };
 
-  const handleReset = () => {
-    playNavigationSound();
-    resetForm();
-  };
-
   const generateCase = async () => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
@@ -556,15 +550,16 @@ function App() {
             </div>
             
             {(selectedFields.length > 0 || selectedTopics.length > 0 || currentPage !== 'selection') && (
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleReset}
-                  className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Opnieuw</span>
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  playNavigationSound();
+                  resetForm();
+                }}
+                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-blue-200 hover:border-blue-300"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span className="text-sm font-medium">Opnieuw</span>
+              </button>
             )}
           </div>
         </div>
