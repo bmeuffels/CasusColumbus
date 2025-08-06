@@ -573,7 +573,7 @@ function App() {
             <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-                  <Users className="w-7 h-7 text-blue-600" />
+                  <UsersIcon className="w-7 h-7 text-blue-600" />
                   Selecteer je vakgebied(en)
                 </h2>
                 <p className="text-gray-600">Kies maximaal twee vakgebieden die relevant zijn voor je organisatie.</p>
