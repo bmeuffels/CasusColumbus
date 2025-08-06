@@ -571,12 +571,15 @@ function App() {
                   <button
                     key={field.id}
                     onClick={() => toggleField(field.id)}
-                    className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
-                      selectedFields.includes(field.id)
-                        ? 'border-blue-500 bg-blue-50 shadow-lg'
-                        : !selectedFields.includes(field.id) && selectedFields.length >= 2
-                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
-                        : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
+                      handleFieldToggle(field.id);
+                      // Play sound after state update
+                      setTimeout(() => {
+                        if (selectedFields.includes(field.id)) {
+                          playSelectSound();
+                        } else {
+                          playDeselectSound();
+                        }
+                      }, 0);
                     }`}
                   >
                     <div className="flex items-start justify-between mb-3">
