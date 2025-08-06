@@ -293,15 +293,6 @@ function App() {
       if (prev.includes(fieldId)) {
         return prev.filter(id => id !== fieldId);
       } else if (prev.length < 2) {
-        return [...prev, fieldId];
-      } else {
-        return prev;
-      }
-    });
-  };
-
-  const toggleTopic = (topicId: string) => {
-    const wasSelected = selectedTopics.includes(topicId);
     setSelectedTopics(prev => {
       if (prev.includes(topicId)) {
         playDeselectSound();
@@ -584,6 +575,18 @@ function App() {
                   <button
                     key={field.id}
                     onClick={() => {
+                      const wasSelected = selectedFields.includes(field.id);
+                      handleFieldToggle(field.id);
+                      
+                      // Play appropriate sound based on current state
+                      setTimeout(() => {
+                        if (wasSelected) {
+                          playDeselectSound(); // Was selected, now deselected
+                        } else {
+                          playSelectSound(); // Was not selected, now selected
+                        }
+                      }, 0);
+                    }}
                       playNavigationSound();
                       handleFieldToggle(field.id);
                       // Play sound after state update
@@ -630,10 +633,7 @@ function App() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {TECH_TOPICS.map((topic) => (
-                  <button
-                    key={topic.id}
-                    onClick={() => toggleTopic(topic.id)}
-                    disabled={!selectedTopics.includes(topic.id) && selectedTopics.length >= 1}
+                    onClick={() => handleTopicToggle(topic.id)}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedTopics.includes(topic.id)
                         ? 'border-indigo-500 bg-indigo-50 shadow-lg'
