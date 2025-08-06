@@ -1,13 +1,19 @@
 import { BookOpen, Users, Target, Building2, Scale, Newspaper, Brain, Shield, Database, Zap, Eye, Leaf, RotateCcw, ArrowLeft, ArrowRight, CheckCircle, User, AlertTriangle, Lightbulb, TrendingUp, Clock, MapPin, FileText, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
-  Users as UsersIcon,
+  Users, 
+  Brain, 
   Laptop, 
+  Shield, 
   Heart, 
   GraduationCap, 
   Building, 
+  Scale, 
   Briefcase,
+  Zap,
   Globe,
+  Database,
+  Eye,
   CheckCircle,
   ArrowRight,
   FileText,
@@ -567,7 +573,7 @@ function App() {
             <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-                  <UsersIcon className="w-7 h-7 text-blue-600" />
+                  <Users className="w-7 h-7 text-blue-600" />
                   Selecteer je vakgebied(en)
                 </h2>
                 <p className="text-gray-600">Kies maximaal twee vakgebieden die relevant zijn voor je organisatie.</p>
