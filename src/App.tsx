@@ -341,9 +341,7 @@ function App() {
   const generateCase = async () => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
-    if (!isMuted) {
-      playNavigationSound();
-    }
+    playNavigationSound();
     setIsGeneratingTitles(true);
 
     const selectedFieldNames = selectedFields.map(id => 
@@ -439,7 +437,9 @@ function App() {
   const expandCase = async () => {
     if (!result) return;
 
-    playNavigationSound();
+    if (!isMuted) {
+      playNavigationSound();
+    }
     setIsExpandingCase(true);
 
     // Use correct dimensions instead of user selections
@@ -1061,7 +1061,6 @@ function App() {
                 <button
                   onClick={() => {
                     expandCase();
-                    playNavigationSound();
                   }}
                   disabled={isExpandingCase}
                   className={`flex items-center space-x-2 px-8 py-3 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
