@@ -513,6 +513,10 @@ function App() {
     resetForm();
   };
 
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
       {/* Background Elements */}
@@ -529,6 +533,33 @@ function App() {
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
       </div>
+
+      {/* Mute knop - altijd zichtbaar */}
+      <button
+        onClick={toggleMute}
+        className={`fixed top-4 right-4 w-10 h-10 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 z-50 flex items-center justify-center ${
+          isMuted 
+            ? 'bg-gray-500 hover:bg-gray-600 text-white' 
+            : 'bg-gradient-to-r from-orange-500 to-yellow-400 hover:from-orange-600 hover:to-yellow-500 text-white'
+        }`}
+        title="Geluid aan/uitzetten"
+      >
+        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+      </button>
+
+      {/* Opnieuw knop - alleen zichtbaar bij selecties */}
+      {(selectedFields.length > 0 || selectedTopics.length > 0 || selectedDimensions.length > 0) && (
+        <div className="fixed top-4 right-20 flex gap-2">
+          {/* Opnieuw knop */}
+          <button
+            onClick={handleReset}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow-lg hover:scale-105"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Opnieuw
+          </button>
+        </div>
+      )}
 
       {/* Header */}
       <header className="relative z-50 backdrop-blur-xl bg-white/80 border-b border-blue-200/50 shadow-lg">
