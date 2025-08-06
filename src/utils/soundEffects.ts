@@ -39,13 +39,17 @@ class SoundEffects {
   private async loadSwordSound() {
     try {
       const response = await fetch('/Schrapend piratenzwaard.mp3');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const arrayBuffer = await response.arrayBuffer();
       
       if (this.audioContext) {
         this.swordSoundBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+        console.log('Sword sound loaded successfully');
       }
     } catch (error) {
-      console.warn('Could not load sword sound:', error);
+      console.warn('Could not load sword sound, using fallback:', error);
     }
   }
 
