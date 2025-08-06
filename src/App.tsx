@@ -20,7 +20,8 @@ import {
   UserCheck,
   Sparkles,
   RefreshCw,
-  Volume2
+  Volume2,
+  RotateCcw
 } from 'lucide-react';
 
 interface WorkField {
@@ -338,6 +339,10 @@ function App() {
     setShowFeedback(false);
   };
 
+  const handleRestart = () => {
+    resetForm();
+  };
+
   const generateCase = async () => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
@@ -554,18 +559,16 @@ function App() {
               <button
                 className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
                 title="Geluid aan/uit"
-        <div className="flex items-center gap-3">
-          {(currentStep > 0 || selectedCase) && (
-            <button
-              onClick={handleRestart}
-              className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-200 hover:scale-105"
-              title="Opnieuw beginnen"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Opnieuw
-            </button>
-          )}
-                  <RefreshCw className="w-4 h-4" />
+              >
+                <Volume2 className="w-4 h-4" />
+              </button>
+              {(currentPage !== 'selection') && (
+                <button
+                  onClick={handleRestart}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-200 hover:scale-105"
+                  title="Opnieuw beginnen"
+                >
+                  <RotateCcw className="w-4 h-4" />
                   <span className="text-sm font-medium">Opnieuw</span>
                 </button>
               )}
