@@ -1,4 +1,4 @@
-import { ChevronRight, RotateCcw, Users, CheckCircle, AlertCircle, Lightbulb, ArrowLeft, Sparkles, Volume2 } from 'lucide-react';
+import { ChevronRight, RotateCcw, Users, CheckCircle, AlertCircle, Lightbulb, ArrowLeft, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
   Brain, 
@@ -264,15 +264,16 @@ function App() {
   const [isExpandingCase, setIsExpandingCase] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
+  const [isMuted, setIsMuted] = useState(false);
 
   const toggleField = (fieldId: string) => {
     const wasSelected = selectedFields.includes(fieldId);
     setSelectedFields(prev => {
       if (prev.includes(fieldId)) {
-        playDeselectSound();
+        if (!isMuted) playDeselectSound();
         return prev.filter(id => id !== fieldId);
       } else if (prev.length < 2) {
-        playSelectSound();
+        if (!isMuted) playSelectSound();
         return [...prev, fieldId];
       } else {
         return prev;
@@ -301,13 +302,13 @@ function App() {
   const toggleTopic = (topicId: string) => {
     setSelectedTopics(prev => {
       if (prev.includes(topicId)) {
-        playDeselectSound();
+        if (!isMuted) playDeselectSound();
         return prev.filter(id => id !== topicId);
       } else if (prev.length === 0) {
-        playSelectSound();
+        if (!isMuted) playSelectSound();
         return [topicId];
       } else {
-        playSelectSound();
+        if (!isMuted) playSelectSound();
         return [topicId];
       }
     });
@@ -319,10 +320,10 @@ function App() {
     const wasSelected = selectedDimensions.includes(dimensionId);
     setSelectedDimensions(prev => {
       if (prev.includes(dimensionId)) {
-        playDeselectSound();
+        if (!isMuted) playDeselectSound();
         return prev.filter(id => id !== dimensionId);
       } else if (prev.length < requiredSelections) {
-        playSelectSound();
+        if (!isMuted) playSelectSound();
         return [...prev, dimensionId];
       } else {
         return prev;
@@ -338,7 +339,7 @@ function App() {
   const generateCase = async () => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
-    playNavigationSound();
+    if (!isMuted) playNavigationSound();
     setIsGeneratingTitles(true);
 
     const selectedFieldNames = selectedFields.map(id => 
@@ -381,7 +382,7 @@ function App() {
   const generateCaseFromTitle = async (selectedTitle: string, techTopic: string) => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
-    playNavigationSound();
+    if (!isMuted) playNavigationSound();
     // Reset compass state for new case
     setSelectedDimensions([]);
     setShowFeedback(false);
@@ -434,7 +435,7 @@ function App() {
   const expandCase = async () => {
     if (!result) return;
 
-    playNavigationSound();
+    if (!isMuted) playNavigationSound();
     setIsExpandingCase(true);
 
     // Use correct dimensions instead of user selections
@@ -508,7 +509,7 @@ function App() {
   };
 
   const handleReset = () => {
-    playNavigationSound();
+    if (!isMuted) playNavigationSound();
     resetForm();
   };
 
@@ -555,10 +556,15 @@ function App() {
             {/* Mute button - always visible when reset is visible */}
             {(selectedFields.length > 0 || selectedTopics.length > 0 || currentPage !== 'selection') && (
               <button
-                className="absolute right-4 top-4 bg-gray-600 hover:bg-gray-700 text-white w-10 h-10 rounded-lg transition-colors duration-200 flex items-center justify-center"
-                title="Geluid aan/uit"
+                onClick={() => setIsMuted(!isMuted)}
+                className={`absolute right-4 top-4 w-10 h-10 rounded-lg transition-colors duration-200 flex items-center justify-center ${
+                  isMuted 
+                    ? 'bg-gray-600 hover:bg-gray-700 text-white' 
+                    : 'bg-gray-600 hover:bg-gray-700 text-white'
+                }`}
+                title={isMuted ? 'Geluid aanzetten' : 'Geluid uitzetten'}
               >
-                <Volume2 className="w-5 h-5" />
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
               </button>
             )}
             
@@ -599,9 +605,9 @@ function App() {
                       // Play appropriate sound based on current state
                       setTimeout(() => {
                         if (wasSelected) {
-                          playDeselectSound(); // Was selected, now deselected
+                          if (!isMuted) playDeselectSound(); // Was selected, now deselected
                         } else {
-                          playSelectSound(); // Was not selected, now selected
+                          if (!isMuted) playSelectSound(); // Was not selected, now selected
                         }
                       }, 0);
                     }}
@@ -741,10 +747,10 @@ function App() {
                       onClick={() => {
                         const wasSelected = selectedCaseTitle?.index === index;
                         if (wasSelected) {
-                          playDeselectSound();
+                          if (!isMuted) playDeselectSound();
                           setSelectedCaseTitle(null);
                         } else {
-                          playSelectSound();
+                          if (!isMuted) playSelectSound();
                           setSelectedCaseTitle({ ...caseTitle, index });
                         }
                       }}
@@ -785,10 +791,10 @@ function App() {
                       onClick={() => {
                         const wasSelected = selectedCaseTitle?.index === index + 6;
                         if (wasSelected) {
-                          playDeselectSound();
+                          if (!isMuted) playDeselectSound();
                           setSelectedCaseTitle(null);
                         } else {
-                          playSelectSound();
+                          if (!isMuted) playSelectSound();
                           setSelectedCaseTitle({ ...caseTitle, index: index + 6 });
                         }
                       }}
@@ -823,7 +829,7 @@ function App() {
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => {
-                  playNavigationSound();
+                  if (!isMuted) playNavigationSound();
                   setCurrentPage('selection');
                 }}
                 disabled={isGenerating}
@@ -1028,7 +1034,7 @@ function App() {
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => {
-                  playNavigationSound();
+                  if (!isMuted) playNavigationSound();
                   setCurrentPage('titles');
                 }}
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
@@ -1040,7 +1046,7 @@ function App() {
               {selectedDimensions.length === requiredSelections && !showFeedback && (
                 <button
                   onClick={() => {
-                    playConfirmSound();
+                    if (!isMuted) playConfirmSound();
                     setShowFeedback(true);
                   }}
                   className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -1053,7 +1059,7 @@ function App() {
               {showFeedback && (
                 <button
                   onClick={() => {
-                    playSelectSound();
+                    if (!isMuted) playSelectSound();
                     retryDimensionSelection();
                   }}
                   className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -1066,7 +1072,7 @@ function App() {
               {showFeedback && (
                 <button
                   onClick={() => {
-                    playNavigationSound();
+                    if (!isMuted) playNavigationSound();
                     expandCase();
                   }}
                   disabled={isExpandingCase}
@@ -1174,7 +1180,7 @@ function App() {
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => {
-                  playNavigationSound();
+                  if (!isMuted) playNavigationSound();
                   setCurrentPage('case');
                 }}
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
@@ -1184,7 +1190,7 @@ function App() {
               </button>
               <button
                 onClick={() => {
-                  playNavigationSound();
+                  if (!isMuted) playNavigationSound();
                   resetForm();
                 }}
                 className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
