@@ -268,6 +268,10 @@ function App() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
 
+  const toggleMute = () => {
+    setIsMuted(prev => !prev);
+  };
+
   const toggleField = (fieldId: string) => {
     const wasSelected = selectedFields.includes(fieldId);
     setSelectedFields(prev => {
