@@ -2,7 +2,6 @@ import { BookOpen, Users, Target, Building2, Scale, Newspaper, Brain, Shield, Da
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
   Users as UsersIcon,
-  Brain, 
   Laptop, 
   Shield, 
   Heart, 
