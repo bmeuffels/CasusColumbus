@@ -21,7 +21,8 @@ import {
   Sparkles,
   RefreshCw,
   Volume2,
-  RotateCcw
+  RotateCcw,
+  Compass
 } from 'lucide-react';
 
 interface WorkField {
@@ -62,6 +63,7 @@ interface CaseTitle {
 interface SelectedCaseTitle extends CaseTitle {
   index: number;
 }
+
 interface EthicalDimension {
   id: string;
   name: string;
@@ -545,25 +547,38 @@ function App() {
                 />
               </div>
               <div>
-            {/* Debug: Always show restart button for testing */}
-            {true && (
-              <button
-                onClick={handleRestart}
-                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white border border-white/20"
-                title="Opnieuw beginnen"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Opnieuw
-              </button>
-            )}
+                <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                  <Compass className="w-7 h-7 text-orange-500" />
+                  Casus Columbus
+                </h1>
+                <p className="text-gray-600 text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-400" />
+                  Ethiek & Technologie Casus Generator voor professionals
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {/* Debug: Always show restart button for testing */}
+              {true && (
+                <button
+                  onClick={handleRestart}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white border border-white/20"
+                  title="Opnieuw beginnen"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Opnieuw
+                </button>
+              )}
 
-            {/* Mute button - always visible on the right */}
-            <button
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white border border-white/20"
-              title="Geluid aan/uit"
-            >
-              <Volume2 className="w-5 h-5" />
-            </button>
+              {/* Mute button - always visible on the right */}
+              <button
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white border border-white/20"
+                title="Geluid aan/uit"
+              >
+                <Volume2 className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -574,34 +589,33 @@ function App() {
             <h1 className="text-4xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-3">
               <Compass className="w-10 h-10 text-orange-500" />
               Casus Columbus
-                <p className="text-gray-600 text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-400" />
-                  Ethiek & Technologie Casus Generator voor professionals
-                </p>
-              </div>
-            </div>
+            </h1>
+            <p className="text-gray-600 text-sm flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-blue-400" />
+              Ethiek & Technologie Casus Generator voor professionals
+            </p>
+          </div>
             
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
+            <button
+              className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
+              title="Geluid aan/uit"
+            >
+              <Volume2 className="w-4 h-4" />
+            </button>
+            {(currentPage !== 'selection') && (
               <button
-                className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
-                title="Geluid aan/uit"
+                onClick={handleRestart}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-200 hover:scale-105"
+                title="Opnieuw beginnen"
               >
-                <Volume2 className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4" />
+                <span className="text-sm font-medium">Opnieuw</span>
               </button>
-              {(currentPage !== 'selection') && (
-                <button
-                  onClick={handleRestart}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-200 hover:scale-105"
-                  title="Opnieuw beginnen"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span className="text-sm font-medium">Opnieuw</span>
-                </button>
-              )}
-            </div>
+            )}
           </div>
         </div>
-      </header>
+      </main>
 
       <main className="max-w-7xl mx-auto px-6 py-8 relative z-10">
         {currentPage === 'selection' ? (
