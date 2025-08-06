@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
   Users, 
   Brain, 
@@ -267,24 +268,36 @@ function App() {
   const [requiredSelections, setRequiredSelections] = useState(3);
 
   const toggleField = (fieldId: string) => {
+    const wasSelected = selectedFields.includes(fieldId);
     setSelectedFields(prev => {
       if (prev.includes(fieldId)) {
+        playDeselectSound();
         return prev.filter(id => id !== fieldId);
       } else if (prev.length < 2) {
+        playSelectSound();
         return [...prev, fieldId];
       } else {
         return prev;
       }
     });
+    
+    // Don't play sound if no change occurred (when limit reached)
+    if (!wasSelected && selectedFields.length >= 2) {
+      // No sound for blocked selection
+    }
   };
 
   const toggleTopic = (topicId: string) => {
+    const wasSelected = selectedTopics.includes(topicId);
     setSelectedTopics(prev => {
       if (prev.includes(topicId)) {
+        playDeselectSound();
         return prev.filter(id => id !== topicId);
       } else if (prev.length === 0) {
+        playSelectSound();
         return [topicId];
       } else {
+        playSelectSound();
         return [topicId];
       }
     });
@@ -293,10 +306,13 @@ function App() {
   const toggleDimension = (dimensionId: string) => {
     if (showFeedback) return; // Prevent changes after feedback is shown
     
+    const wasSelected = selectedDimensions.includes(dimensionId);
     setSelectedDimensions(prev => {
       if (prev.includes(dimensionId)) {
+        playDeselectSound();
         return prev.filter(id => id !== dimensionId);
       } else if (prev.length < requiredSelections) {
+        playSelectSound();
         return [...prev, dimensionId];
       } else {
         return prev;
@@ -312,6 +328,7 @@ function App() {
   const generateCase = async () => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
+    playNavigationSound();
     setIsGeneratingTitles(true);
 
     const selectedFieldNames = selectedFields.map(id => 
@@ -354,6 +371,7 @@ function App() {
   const generateCaseFromTitle = async (selectedTitle: string, techTopic: string) => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
+    playNavigationSound();
     // Reset compass state for new case
     setSelectedDimensions([]);
     setShowFeedback(false);
@@ -406,6 +424,7 @@ function App() {
   const expandCase = async () => {
     if (!result) return;
 
+    playNavigationSound();
     setIsExpandingCase(true);
 
     // Use correct dimensions instead of user selections
@@ -549,7 +568,16 @@ function App() {
                   <button
                     key={field.id}
                     onClick={() => toggleField(field.id)}
-                    disabled={!selectedFields.includes(field.id) && selectedFields.length >= 2}
+                    onClick={() => {
+                      const wasSelected = selectedCaseTitle?.index === index;
+                      if (wasSelected) {
+                        playDeselectSound();
+                        setSelectedCaseTitle(null);
+                      } else {
+                        playSelectSound();
+                        setSelectedCaseTitle({ ...caseTitle, index });
+                      }
+                    }}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedFields.includes(field.id)
                         ? 'border-blue-500 bg-blue-50 shadow-lg'
@@ -748,7 +776,10 @@ function App() {
             {/* Back Button */}
             <div className="flex justify-center space-x-4">
               <button
-                onClick={() => setCurrentPage('selection')}
+                onClick={() => {
+                  playNavigationSound();
+                  setCurrentPage('selection');
+                }}
                 disabled={isGenerating}
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -758,7 +789,10 @@ function App() {
               
               {selectedCaseTitle && (
                 <button
-                  onClick={() => generateCaseFromTitle(selectedCaseTitle.title, selectedCaseTitle.techTopic)}
+                  onClick={() => {
+                    playConfirmSound();
+                    generateCaseFromTitle(selectedCaseTitle.title, selectedCaseTitle.techTopic);
+                  }}
                   disabled={isGenerating}
                   className={`flex items-center space-x-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg shadow-xl transition-all duration-300 transform hover:scale-105 ${
                     isGenerating
@@ -948,7 +982,10 @@ function App() {
             {/* Action Buttons */}
             <div className="flex justify-center space-x-4">
               <button
-                onClick={() => setCurrentPage('titles')}
+                onClick={() => {
+                  playNavigationSound();
+                  setCurrentPage('titles');
+                }}
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
               >
                 <ArrowRight className="w-5 h-5 rotate-180" />
@@ -957,7 +994,10 @@ function App() {
               
               {selectedDimensions.length === requiredSelections && !showFeedback && (
                 <button
-                  onClick={() => setShowFeedback(true)}
+                  onClick={() => {
+                    playConfirmSound();
+                    setShowFeedback(true);
+                  }}
                   className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <CheckCircle className="w-5 h-5" />
@@ -967,7 +1007,10 @@ function App() {
               
               {showFeedback && (
                 <button
-                  onClick={retryDimensionSelection}
+                  onClick={() => {
+                    playSelectSound();
+                    retryDimensionSelection();
+                  }}
                   className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                 >
                   <RefreshCw className="w-5 h-5" />
@@ -977,7 +1020,10 @@ function App() {
               
               {showFeedback && (
                 <button
-                  onClick={expandCase}
+                  onClick={() => {
+                    playNavigationSound();
+                    expandCase();
+                  }}
                   disabled={isExpandingCase}
                   className={`flex items-center space-x-2 px-8 py-3 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
                     isExpandingCase
@@ -1082,14 +1128,20 @@ function App() {
             {/* Action Buttons */}
             <div className="flex justify-center space-x-4">
               <button
-                onClick={() => setCurrentPage('case')}
+                onClick={() => {
+                  playNavigationSound();
+                  setCurrentPage('case');
+                }}
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
               >
                 <ArrowRight className="w-5 h-5 rotate-180" />
                 <span>Terug naar Casus</span>
               </button>
               <button
-                onClick={resetForm}
+                onClick={() => {
+                  playNavigationSound();
+                  resetForm();
+                }}
                 className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <ArrowRight className="w-5 h-5 rotate-180" />
