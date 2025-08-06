@@ -287,6 +287,19 @@ function App() {
     }
   };
 
+  const handleFieldToggle = (fieldId: string) => {
+    const wasSelected = selectedFields.includes(fieldId);
+    setSelectedFields(prev => {
+      if (prev.includes(fieldId)) {
+        return prev.filter(id => id !== fieldId);
+      } else if (prev.length < 2) {
+        return [...prev, fieldId];
+      } else {
+        return prev;
+      }
+    });
+  };
+
   const toggleTopic = (topicId: string) => {
     const wasSelected = selectedTopics.includes(topicId);
     setSelectedTopics(prev => {
@@ -588,9 +601,9 @@ function App() {
                         : !selectedFields.includes(field.id) && selectedFields.length >= 2
                         ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
                         : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
-                    }}
+                    }`}
                   >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${field.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                    <div className="flex items-start justify-between mb-3">
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${field.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
                         {field.icon}
                       </div>
