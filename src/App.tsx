@@ -1,547 +1,1195 @@
 import React, { useState } from 'react';
-import { Sparkles, RotateCcw, Volume2 } from 'lucide-react';
-import { playSelectSound, playDeselectSound, playNavigationSound } from './utils/soundEffects';
+import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
+import { 
+  Users, 
+  Brain, 
+  Laptop, 
+  Shield, 
+  Heart, 
+  GraduationCap, 
+  Building, 
+  Scale, 
+  Briefcase,
+  Zap,
+  Globe,
+  Database,
+  Eye,
+  CheckCircle,
+  ArrowRight,
+  FileText,
+  UserCheck,
+  Sparkles,
+  RefreshCw,
+  Volume2
+} from 'lucide-react';
 
-// Types
-interface Case {
+interface WorkField {
   id: string;
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+  description: string;
+}
+
+interface TechTopic {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+  description: string;
+}
+
+interface CaseResult {
+  case: string;
+  compactCase: string;
+  expandedCase: string;
+  correctDimensions: string[];
+  explanations: string[];
+  stakeholders: Array<{
+    role: string;
+    interests: string;
+    perspective: string;
+  }>;
+}
+
+interface CaseTitle {
   title: string;
   description: string;
-  ethicalDilemma: string;
-  stakeholders: string[];
-  technologies: string[];
-  context: string;
+  techTopic: string;
 }
 
-interface Stakeholder {
+interface SelectedCaseTitle extends CaseTitle {
+  index: number;
+}
+interface EthicalDimension {
+  id: string;
   name: string;
-  role: string;
-  interests: string[];
-  concerns: string[];
-  influence: 'Hoog' | 'Gemiddeld' | 'Laag';
+  description: string;
+  color: string;
 }
 
-// Technology areas and their subcategories
-const technologyAreas = {
-  'Artificial Intelligence': [
-    'Machine Learning', 'Deep Learning', 'Natural Language Processing', 
-    'Computer Vision', 'Robotics', 'Expert Systems'
-  ],
-  'Data & Privacy': [
-    'Big Data Analytics', 'Data Mining', 'Privacy Protection', 
-    'Data Governance', 'Surveillance Technology', 'Biometric Systems'
-  ],
-  'Internet & Communication': [
-    'Social Media Platforms', 'Internet of Things', 'Cloud Computing', 
-    'Cybersecurity', 'Digital Identity', 'Online Communities'
-  ],
-  'Biotechnology': [
-    'Genetic Engineering', 'CRISPR Technology', 'Synthetic Biology', 
-    'Biomedical Devices', 'Pharmaceutical Technology', 'Personalized Medicine'
-  ],
-  'Emerging Technologies': [
-    'Blockchain', 'Quantum Computing', 'Augmented Reality', 
-    'Virtual Reality', 'Nanotechnology', '3D Printing'
-  ],
-  'Automation & Work': [
-    'Industrial Automation', 'Autonomous Vehicles', 'Digital Platforms', 
-    'Algorithmic Management', 'Remote Work Technology', 'Digital Labor'
-  ]
-};
+const ETHICAL_DIMENSIONS: EthicalDimension[] = [
+  {
+    id: 'relationships',
+    name: 'Relatie tussen mensen',
+    description: 'Impact op werkrelaties en klantcontact',
+    color: 'from-blue-500 to-blue-600'
+  },
+  {
+    id: 'privacy',
+    name: 'Privacy & gegevensbescherming',
+    description: 'Verzameling en gebruik van persoonlijke data',
+    color: 'from-red-500 to-red-600'
+  },
+  {
+    id: 'accessibility',
+    name: 'Toegankelijkheid & inclusiviteit',
+    description: 'Gelijke toegang voor alle gebruikers',
+    color: 'from-green-500 to-green-600'
+  },
+  {
+    id: 'autonomy',
+    name: 'Autonomie & manipulatie',
+    description: 'Vrijheid van keuze en beïnvloeding',
+    color: 'from-purple-500 to-purple-600'
+  },
+  {
+    id: 'responsibility',
+    name: 'Verantwoordelijkheid & aansprakelijkheid',
+    description: 'Wie is verantwoordelijk bij fouten?',
+    color: 'from-orange-500 to-orange-600'
+  },
+  {
+    id: 'sustainability',
+    name: 'Duurzaamheid & milieu-impact',
+    description: 'Ecologische voetafdruk van technologie',
+    color: 'from-emerald-500 to-emerald-600'
+  },
+  {
+    id: 'bias',
+    name: 'Bias & discriminatie',
+    description: 'Vooroordelen in algoritmes en data',
+    color: 'from-pink-500 to-pink-600'
+  },
+  {
+    id: 'transparency',
+    name: 'Transparantie & uitlegbaarheid',
+    description: 'Begrijpelijkheid van AI-beslissingen',
+    color: 'from-indigo-500 to-indigo-600'
+  },
+  {
+    id: 'oversight',
+    name: 'Menselijk toezicht & controle',
+    description: 'Mogelijkheid tot ingrijpen en overrulen',
+    color: 'from-cyan-500 to-cyan-600'
+  },
+  {
+    id: 'wellbeing',
+    name: 'Sociaal welzijn & psychologie',
+    description: 'Impact op mentale gezondheid',
+    color: 'from-yellow-500 to-yellow-600'
+  },
+  {
+    id: 'culture',
+    name: 'Culturele & sociale impact',
+    description: 'Invloed op culturele diversiteit',
+    color: 'from-teal-500 to-teal-600'
+  },
+  {
+    id: 'legal',
+    name: 'Internationale & juridische implicaties',
+    description: 'Grensoverschrijdende regelgeving',
+    color: 'from-slate-500 to-slate-600'
+  }
+];
+
+const WORK_FIELDS: WorkField[] = [
+  {
+    id: 'primary-special-education',
+    name: 'Basisonderwijs & Speciaal Onderwijs',
+    icon: <GraduationCap className="w-6 h-6" />,
+    color: 'from-blue-500 to-indigo-600',
+    description: 'Basisscholen, speciale onderwijsinstellingen'
+  },
+  {
+    id: 'secondary-vocational-education',
+    name: 'Voortgezet & Middelbaar Beroepsonderwijs',
+    icon: <GraduationCap className="w-6 h-6" />,
+    color: 'from-blue-600 to-indigo-700',
+    description: 'Middelbare scholen, ROC, MBO-instellingen'
+  },
+  {
+    id: 'higher-adult-education',
+    name: 'Hoger Onderwijs & Volwasseneneducatie',
+    icon: <GraduationCap className="w-6 h-6" />,
+    color: 'from-indigo-500 to-blue-600',
+    description: 'Universiteiten, HBO, volwasseneneducatie'
+  },
+  {
+    id: 'healthcare',
+    name: 'Gezondheidszorg',
+    icon: <Heart className="w-6 h-6" />,
+    color: 'from-red-500 to-pink-600',
+    description: 'Ziekenhuizen, klinieken, zorgverleners'
+  },
+  {
+    id: 'business',
+    name: 'Bedrijfsleven',
+    icon: <Briefcase className="w-6 h-6" />,
+    color: 'from-green-500 to-emerald-600',
+    description: 'Corporaties, startups, consultancy'
+  },
+  {
+    id: 'government',
+    name: 'Overheid',
+    icon: <Building className="w-6 h-6" />,
+    color: 'from-purple-500 to-violet-600',
+    description: 'Ministeries, gemeenten, publieke sector'
+  },
+  {
+    id: 'legal',
+    name: 'Juridisch',
+    icon: <Scale className="w-6 h-6" />,
+    color: 'from-amber-500 to-orange-600',
+    description: 'Advocatuur, rechtspraak, compliance'
+  },
+  {
+    id: 'media',
+    name: 'Media & Communicatie',
+    icon: <Globe className="w-6 h-6" />,
+    color: 'from-cyan-500 to-teal-600',
+    description: 'Journalistiek, PR, sociale media'
+  },
+  {
+    id: 'science-innovation',
+    name: 'Wetenschap & Innovatie',
+    icon: <Brain className="w-6 h-6" />,
+    color: 'from-emerald-500 to-teal-600',
+    description: 'Onderzoeksinstituten, R&D, innovatiecentra'
+  }
+];
+
+const TECH_TOPICS: TechTopic[] = [
+  {
+    id: 'ai',
+    name: 'Kunstmatige Intelligentie',
+    icon: <Brain className="w-6 h-6" />,
+    color: 'from-violet-500 to-purple-600',
+    description: 'Machine learning, algoritmes, automatisering'
+  },
+  {
+    id: 'data',
+    name: 'Data & Privacy',
+    icon: <Database className="w-6 h-6" />,
+    color: 'from-blue-500 to-cyan-600',
+    description: 'Gegevensbescherming, surveillance, analytics'
+  },
+  {
+    id: 'digital',
+    name: 'Digitale Transformatie',
+    icon: <Laptop className="w-6 h-6" />,
+    color: 'from-indigo-500 to-blue-600',
+    description: 'Digitalisering, platforms, cloud computing'
+  },
+  {
+    id: 'security',
+    name: 'Cybersecurity',
+    icon: <Shield className="w-6 h-6" />,
+    color: 'from-red-500 to-rose-600',
+    description: 'Beveiliging, hacking, digitale veiligheid'
+  },
+  {
+    id: 'automation',
+    name: 'Automatisering',
+    icon: <Zap className="w-6 h-6" />,
+    color: 'from-yellow-500 to-orange-600',
+    description: 'Robotica, IoT, slimme systemen'
+  },
+  {
+    id: 'surveillance',
+    name: 'Toezicht & Monitoring',
+    icon: <Eye className="w-6 h-6" />,
+    color: 'from-gray-500 to-slate-600',
+    description: 'Bewaking, tracking, biometrie'
+  }
+];
 
 function App() {
-  const [currentStep, setCurrentStep] = useState<'areas' | 'technologies' | 'case' | 'stakeholders'>('areas');
-  const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
-  const [selectedTechnologies, setSelectedTechnologies] = useState<string[]>([]);
-  const [generatedCase, setGeneratedCase] = useState<Case | null>(null);
-  const [selectedCase, setSelectedCase] = useState<Case | null>(null);
-  const [stakeholders, setStakeholders] = useState<Stakeholder[]>([]);
+  const [selectedFields, setSelectedFields] = useState<string[]>([]);
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [selectedDimensions, setSelectedDimensions] = useState<string[]>([]);
+  const [caseTitles, setCaseTitles] = useState<CaseTitle[]>([]);
+  const [selectedCaseTitle, setSelectedCaseTitle] = useState<SelectedCaseTitle | null>(null);
+  const [isGeneratingTitles, setIsGeneratingTitles] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isGeneratingStakeholders, setIsGeneratingStakeholders] = useState(false);
+  const [result, setResult] = useState<CaseResult | null>(null);
+  const [currentPage, setCurrentPage] = useState<'selection' | 'titles' | 'case' | 'stakeholders'>('selection');
+  const [isExpandingCase, setIsExpandingCase] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [requiredSelections, setRequiredSelections] = useState(3);
 
-  const handleAreaToggle = (area: string) => {
-    setSelectedAreas(prev => {
-      const newAreas = prev.includes(area) 
-        ? prev.filter(a => a !== area)
-        : [...prev, area];
-      
-      if (prev.includes(area)) {
+  const toggleField = (fieldId: string) => {
+    const wasSelected = selectedFields.includes(fieldId);
+    setSelectedFields(prev => {
+      if (prev.includes(fieldId)) {
         playDeselectSound();
-      } else {
+        return prev.filter(id => id !== fieldId);
+      } else if (prev.length < 2) {
         playSelectSound();
+        return [...prev, fieldId];
+      } else {
+        return prev;
       }
-      
-      return newAreas;
+    });
+    
+    // Don't play sound if no change occurred (when limit reached)
+    if (!wasSelected && selectedFields.length >= 2) {
+      // No sound for blocked selection
+    }
+  };
+
+  const handleFieldToggle = (fieldId: string) => {
+    const wasSelected = selectedFields.includes(fieldId);
+    setSelectedFields(prev => {
+      if (prev.includes(fieldId)) {
+        return prev.filter(id => id !== fieldId);
+      } else if (prev.length < 2) {
+        return [...prev, fieldId];
+      } else {
+        return prev;
+      }
     });
   };
 
-  const handleTechnologyToggle = (tech: string) => {
-    setSelectedTechnologies(prev => {
-      const newTechs = prev.includes(tech) 
-        ? prev.filter(t => t !== tech)
-        : [...prev, tech];
-      
-      if (prev.includes(tech)) {
+  const toggleTopic = (topicId: string) => {
+    setSelectedTopics(prev => {
+      if (prev.includes(topicId)) {
         playDeselectSound();
+        return prev.filter(id => id !== topicId);
+      } else if (prev.length === 0) {
+        playSelectSound();
+        return [topicId];
       } else {
         playSelectSound();
+        return [topicId];
       }
-      
-      return newTechs;
     });
   };
 
-  const getAvailableTechnologies = () => {
-    return selectedAreas.flatMap(area => 
-      technologyAreas[area as keyof typeof technologyAreas] || []
-    );
+  const toggleDimension = (dimensionId: string) => {
+    if (showFeedback) return; // Prevent changes after feedback is shown
+    
+    const wasSelected = selectedDimensions.includes(dimensionId);
+    setSelectedDimensions(prev => {
+      if (prev.includes(dimensionId)) {
+        playDeselectSound();
+        return prev.filter(id => id !== dimensionId);
+      } else if (prev.length < requiredSelections) {
+        playSelectSound();
+        return [...prev, dimensionId];
+      } else {
+        return prev;
+      }
+    });
+  };
+
+  const retryDimensionSelection = () => {
+    setSelectedDimensions([]);
+    setShowFeedback(false);
   };
 
   const generateCase = async () => {
-    setIsGenerating(true);
-    
+    if (selectedFields.length === 0 || selectedTopics.length === 0) return;
+
+    playNavigationSound();
+    setIsGeneratingTitles(true);
+
+    const selectedFieldNames = selectedFields.map(id => 
+      WORK_FIELDS.find(f => f.id === id)?.name
+    ).join(', ');
+
+    const selectedTopicNames = selectedTopics.map(id => 
+      TECH_TOPICS.find(t => t.id === id)?.name
+    ).join(', ');
+
     try {
-      const response = await fetch('/api/generate-case', {
+      const response = await fetch('/api/generate-titles', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          areas: selectedAreas,
-          technologies: selectedTechnologies
+          selectedFields: selectedFieldNames.split(', '),
+          selectedTopics: selectedTopicNames.split(', '),
+          allTopics: TECH_TOPICS.map(t => t.name)
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate case');
+        throw new Error(`API Error: ${response.status}`);
       }
 
-      const caseData = await response.json();
-      setGeneratedCase(caseData);
-      setCurrentStep('case');
+      const result = await response.json();
+      setCaseTitles(result.caseTitles || []);
+      setCurrentPage('titles');
     } catch (error) {
-      console.error('Error generating case:', error);
-      // Fallback case for demo purposes
-      setGeneratedCase({
-        id: 'demo-case',
-        title: 'AI-gedreven Personeelsselectie',
-        description: 'Een technologiebedrijf implementeert een AI-systeem voor het screenen van sollicitanten.',
-        ethicalDilemma: 'Het AI-systeem toont onbewuste vooroordelen tegen bepaalde demografische groepen.',
-        stakeholders: ['HR-afdeling', 'Sollicitanten', 'Management', 'Ontwikkelaars'],
-        technologies: selectedTechnologies,
-        context: 'Moderne werkomgeving met focus op efficiëntie en diversiteit.'
+      console.error('Error generating titles:', error);
+      // Fallback: go directly to case generation
+      await generateCaseFromTitle('Algemene ethische casus', selectedTopicNames);
+    } finally {
+      setIsGeneratingTitles(false);
+    }
+  };
+
+  const generateCaseFromTitle = async (selectedTitle: string, techTopic: string) => {
+    if (selectedFields.length === 0 || selectedTopics.length === 0) return;
+
+    playNavigationSound();
+    // Reset compass state for new case
+    setSelectedDimensions([]);
+    setShowFeedback(false);
+    setRequiredSelections(3);
+
+    setIsGenerating(true);
+
+    const selectedFieldNames = selectedFields.map(id => 
+      WORK_FIELDS.find(f => f.id === id)?.name
+    ).join(', ');
+
+    try {
+      const response = await fetch('/api/generate-case', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          selectedFields: selectedFieldNames.split(', '),
+          selectedTopics: [techTopic],
+          caseTitle: selectedTitle
+        })
       });
-      setCurrentStep('case');
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `API Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setResult(result);
+      setRequiredSelections(result.correctDimensions.length);
+      setCurrentPage('case');
+    } catch (error) {
+      console.error('Error:', error);
+      setResult({
+        case: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
+        compactCase: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
+        expandedCase: '',
+        correctDimensions: [],
+        explanations: [],
+        stakeholders: []
+      });
+      setCurrentPage('case');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const selectCase = () => {
-    playNavigationSound();
-    setSelectedCase(generatedCase);
-    generateStakeholders();
-  };
+  const expandCase = async () => {
+    if (!result) return;
 
-  const generateStakeholders = async () => {
-    if (!generatedCase) return;
-    
-    setIsGeneratingStakeholders(true);
-    setCurrentStep('stakeholders');
-    
+    playNavigationSound();
+    setIsExpandingCase(true);
+
+    // Use correct dimensions instead of user selections
+    const correctDimensionNames = result.correctDimensions.map(id => 
+      ETHICAL_DIMENSIONS.find(d => d.id === id)?.name
+    ).filter(Boolean).join(', ');
+
     try {
       const response = await fetch('/api/expand-case', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          case: generatedCase
+          compactCase: result.compactCase,
+          selectedDimensions: correctDimensionNames.split(', ')
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate stakeholders');
+        console.error(`API Error: ${response.status}`);
+        // Fallback: use original case and continue
+        setResult(prev => prev ? {
+          ...prev,
+          expandedCase: prev.compactCase || prev.case
+        } : null);
+        setCurrentPage('stakeholders');
+        return;
       }
 
-      const data = await response.json();
-      setStakeholders(data.stakeholders);
+      const expandedResult = await response.json();
+      
+      if (expandedResult.expandedCase && expandedResult.expandedCase.trim()) {
+        setResult(prev => prev ? {
+          ...prev,
+          expandedCase: expandedResult.expandedCase
+        } : null);
+      } else {
+        // Fallback: use original case if expansion fails
+        console.warn('No expanded case received, using original case');
+        setResult(prev => prev ? {
+          ...prev,
+          expandedCase: prev.compactCase || prev.case
+        } : null);
+      }
+      
+      setCurrentPage('stakeholders');
     } catch (error) {
-      console.error('Error generating stakeholders:', error);
-      // Fallback stakeholders for demo purposes
-      setStakeholders([
-        {
-          name: 'HR Manager',
-          role: 'Personeelsmanager',
-          interests: ['Efficiënte werving', 'Diverse workforce', 'Compliance'],
-          concerns: ['Juridische risicos', 'Reputatieschade', 'Kandidaattevredenheid'],
-          influence: 'Hoog'
-        },
-        {
-          name: 'Sollicitant',
-          role: 'Potentiële werknemer',
-          interests: ['Eerlijke behandeling', 'Transparantie', 'Kansen'],
-          concerns: ['Discriminatie', 'Privacy', 'Bias in algoritmes'],
-          influence: 'Laag'
-        }
-      ]);
+      console.error('Error expanding case:', error);
+      // Fallback: use original case and continue
+      setResult(prev => prev ? {
+        ...prev,
+        expandedCase: prev.compactCase || prev.case
+      } : null);
+      setCurrentPage('stakeholders');
     } finally {
-      setIsGeneratingStakeholders(false);
+      setIsExpandingCase(false);
     }
   };
 
-  const resetApp = () => {
-    playNavigationSound();
-    setCurrentStep('areas');
-    setSelectedAreas([]);
-    setSelectedTechnologies([]);
-    setGeneratedCase(null);
-    setSelectedCase(null);
-    setStakeholders([]);
+  const resetForm = () => {
+    setSelectedFields([]);
+    setSelectedTopics([]);
+    setSelectedDimensions([]);
+    setCaseTitles([]);
+    setSelectedCaseTitle(null);
+    setResult(null);
+    setShowFeedback(false);
+    setRequiredSelections(3);
+    setCurrentPage('selection');
   };
 
-  const canProceedFromAreas = selectedAreas.length > 0;
-  const canProceedFromTechnologies = selectedTechnologies.length > 0;
-  const availableTechnologies = getAvailableTechnologies();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0 z-0">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: 'url(https://ucb5ea564f8e92f3121e32939587.previews.dropboxusercontent.com/p/thumb/ACta83wQsHX0ZB7jyXRqlMaKWLHo439GXjcgXp7cnNmimOpqQ77W8aF2HbCDe34W9EzK3Wnb_XrMEWpHZYG_o4vWix6kaqN4WmlcLFNuz7pcgAMVq_uK5m9aEeZAFuGksDDCnASyuIBh8LF0_9LvY9dm423h1uqpjL_qqAlkexTRLGRG4tEApkVG4DklvLW5kjoeN4hRHzzG2Zs7eUCZMvgocTNraYpjOr-aIVnMEZEl1ikDioSOqGhKDqekt97dFYShwqp-upiBDrMYGMeWp8H1GQNnADDQuky7HJqmMU2KHFn2BnyZf9DnCUJzemGPryrtzWAZSiD0eVOqoxChqUKzGrpruPRoLDKyp8EFSMu5_REA-46_E3wIbwjtiOW9jn6_avlsDaPpQe8SQDKVdTzi51yT0g9Qs78ZeOLkYSUEMbA401iSmKlvBH7mKYxQJo8B6bwLse9EewH7ZR0ePFCF--VbXnreGGvBvpG-U-9G0hiDnyGfFv-l77eYM0Zl8IuJZOtuSuULDHguqn2tPpIxPKCUl5xLGw182hwlB51n6ScVtqZDt5LYQvF-QJux2emlzSFD7WGecBkJ6pdE2zZO/p.jpeg)'
+          }}
+        />
+        {/* Gradient Overlay */}
+        {/* Animated Elements */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <header className="relative z-50 backdrop-blur-xl bg-white/80 border-b border-blue-200/50 shadow-lg">
+        <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
-                <Sparkles className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg">
+                <img 
+                  src="https://uca40e2e7968751e358787b8514d.previews.dropboxusercontent.com/p/thumb/ACvvuRSMAx1PGgNAvH7JI6U6L7zJo-QsyKJfcIWEydCKrZWOb3ERhhF181olVeYRuoPb1aZvAjUjwhelQoDArC-4fe5DOj070I3-4PerbSgAWxhFjpe-LqKqGpCMQKvfKUdGwkX-m21TNclrkN9sUVgFkv9vVTIh4LB7e-T4h8-KBbpH8UK5hf-iqzQrvNJ1n2JT6t0oUhKBjqBiHCI2Ocfllh6V_1gtI3lbsmF0-j3Uo-KOoPHM8tAlnaXuKXrBhcmOgEkwydjF9EWsbPKnMlpBFwMv3eXoNQ7Ao-idF1weVCli9rRI926K6Sqi3l431vHF_nSGB0F7349V3f0l7MnRQNzSa_M_AP1ZKRwCd9mg4Q/p.jpeg"
+                  alt="Casus Columbus Logo"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Casus Columbus</h1>
-                <p className="text-sm text-gray-600">⚓ Ethiek & Technologie Casus Generator voor professionals</p>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                  Casus Columbus
+                </h1>
+                <p className="text-gray-600 text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-400" />
+                  Ethiek & Technologie Casus Generator voor professionals
+                </p>
               </div>
             </div>
             
-            <div className="flex items-center space-x-3">
-              {(currentStep !== 'areas' || selectedAreas.length > 0) && (
-                <button
-                  onClick={resetApp}
-                  className="order-1 flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-200 hover:scale-105"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Opnieuw</span>
-                </button>
-              )}
-              
+            <div className="flex items-center gap-3">
               <button
-                className="order-2 p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-all duration-200 hover:scale-105 group"
+                className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
                 title="Geluid aan/uit"
               >
                 <Volume2 className="w-5 h-5" />
               </button>
+              {(selectedFields.length > 0 || selectedTopics.length > 0 || currentPage !== 'selection') && (
+                <button
+                  onClick={() => {
+                    playNavigationSound();
+                    resetForm();
+                  }}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-blue-200 hover:border-blue-300"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span className="text-sm font-medium">Opnieuw</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Step 1: Select Technology Areas */}
-        {currentStep === 'areas' && (
+      <main className="max-w-7xl mx-auto px-6 py-8 relative z-10">
+        {currentPage === 'selection' ? (
           <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Welke technologiegebieden interesseren je?
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Selecteer een of meerdere gebieden om een relevante ethische casus te genereren.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Object.keys(technologyAreas).map((area) => (
-                <div
-                  key={area}
-                  onClick={() => handleAreaToggle(area)}
-                  className={`p-6 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
-                    selectedAreas.includes(area)
-                      ? 'border-blue-500 bg-blue-50 shadow-lg'
-                      : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-md'
-                  }`}
-                >
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">{area}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {technologyAreas[area as keyof typeof technologyAreas].slice(0, 3).map((tech) => (
-                      <span
-                        key={tech}
-                        className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                    {technologyAreas[area as keyof typeof technologyAreas].length > 3 && (
-                      <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                        +{technologyAreas[area as keyof typeof technologyAreas].length - 3} meer
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {canProceedFromAreas && (
-              <div className="text-center">
-                <button
-                  onClick={() => {
-                    playNavigationSound();
-                    setCurrentStep('technologies');
-                  }}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 hover:scale-105 shadow-lg"
-                >
-                  Ga naar specifieke technologieën →
-                </button>
+            {/* Work Fields Selection */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <Users className="w-7 h-7 text-blue-600" />
+                  Selecteer je vakgebied(en)
+                </h2>
+                <p className="text-gray-600">Kies maximaal twee vakgebieden die relevant zijn voor je organisatie.</p>
               </div>
-            )}
-          </div>
-        )}
-
-        {/* Step 2: Select Specific Technologies */}
-        {currentStep === 'technologies' && (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Welke specifieke technologieën?
-              </h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                Kies uit de technologieën binnen je geselecteerde gebieden.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Geselecteerde gebieden:</h3>
-              <div className="flex flex-wrap gap-2">
-                {selectedAreas.map((area) => (
-                  <span
-                    key={area}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {WORK_FIELDS.map((field) => (
+                  <button
+                    key={field.id}
+                    onClick={() => {
+                      const wasSelected = selectedFields.includes(field.id);
+                      handleFieldToggle(field.id);
+                      
+                      // Play appropriate sound based on current state
+                      setTimeout(() => {
+                        if (wasSelected) {
+                          playDeselectSound(); // Was selected, now deselected
+                        } else {
+                          playSelectSound(); // Was not selected, now selected
+                        }
+                      }, 0);
+                    }}
+                    disabled={!selectedFields.includes(field.id) && selectedFields.length >= 2}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                      selectedFields.includes(field.id)
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : !selectedFields.includes(field.id) && selectedFields.length >= 2
+                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
+                        : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
+                    }`}
                   >
-                    {area}
-                  </span>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${field.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                        {field.icon}
+                      </div>
+                      {selectedFields.includes(field.id) && (
+                        <CheckCircle className="w-6 h-6 text-blue-600" />
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">{field.name}</h3>
+                    <p className="text-sm text-gray-600">{field.description}</p>
+                  </button>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {availableTechnologies.map((tech) => (
-                <div
-                  key={tech}
-                  onClick={() => handleTechnologyToggle(tech)}
-                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-105 ${
-                    selectedTechnologies.includes(tech)
-                      ? 'border-purple-500 bg-purple-50 shadow-md'
-                      : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-                  }`}
-                >
-                  <h4 className="font-medium text-gray-900">{tech}</h4>
-                </div>
-              ))}
+            {/* Technology Topics Selection */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <Laptop className="w-7 h-7 text-indigo-600" />
+                  Selecteer technologie onderwerp
+                </h2>
+                <p className="text-gray-600">Kies één technologisch thema voor je ethische casus.</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {TECH_TOPICS.map((topic) => (
+                  <button
+                    key={topic.id}
+                    onClick={() => toggleTopic(topic.id)}
+                    disabled={!selectedTopics.includes(topic.id) && selectedTopics.length >= 1}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                      selectedTopics.includes(topic.id)
+                        ? 'border-indigo-500 bg-indigo-50 shadow-lg'
+                        : !selectedTopics.includes(topic.id) && selectedTopics.length >= 1
+                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
+                        : 'border-gray-200 bg-white/80 hover:border-indigo-300 hover:bg-indigo-50/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${topic.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                        {topic.icon}
+                      </div>
+                      {selectedTopics.includes(topic.id) && (
+                        <CheckCircle className="w-6 h-6 text-indigo-600" />
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">{topic.name}</h3>
+                    <p className="text-sm text-gray-600">{topic.description}</p>
+                  </button>
+                ))}
+              </div>
             </div>
 
+            {/* Generate Button */}
+            {selectedFields.length > 0 && selectedTopics.length === 1 && (
+              <div className="text-center">
+                <button
+                  onClick={generateCase}
+                  disabled={isGeneratingTitles}
+                  className={`inline-flex items-center space-x-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                    isGeneratingTitles
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-200'
+                  }`}
+                >
+                  {isGeneratingTitles ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Casus opties worden geladen...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-6 h-6" />
+                      <span>Toon Casus Opties</span>
+                      <ArrowRight className="w-6 h-6" />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+        ) : null}
+        
+        {currentPage === 'titles' && (
+          <div className="space-y-8">
+            {/* Case Titles Selection */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <FileText className="w-7 h-7 text-blue-600" />
+                  Kies je Casus
+                </h2>
+                <p className="text-gray-600">Selecteer een casus die je interessant lijkt voor verdere uitwerking.</p>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {selectedFields.map(fieldId => {
+                    const field = WORK_FIELDS.find(f => f.id === fieldId);
+                    return field ? (
+                      <span key={fieldId} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {field.name}
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedTopics.map(topicId => {
+                    const topic = TECH_TOPICS.find(t => t.id === topicId);
+                    return topic ? (
+                      <span key={topicId} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                        {topic.name}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+
+              {/* Primary Cases - From Selected Topic */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-600" />
+                  Casussen uit jouw gekozen onderwerp
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {caseTitles.slice(0, 6).map((caseTitle, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        const wasSelected = selectedCaseTitle?.index === index;
+                        if (wasSelected) {
+                          playDeselectSound();
+                          setSelectedCaseTitle(null);
+                        } else {
+                          playSelectSound();
+                          setSelectedCaseTitle({ ...caseTitle, index });
+                        }
+                      }}
+                      className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                        selectedCaseTitle?.index === index
+                          ? 'border-blue-500 bg-blue-50 shadow-lg'
+                          : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        {selectedCaseTitle?.index === index && (
+                          <CheckCircle className="w-6 h-6 text-blue-600" />
+                        )}
+                        <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
+                          {caseTitle.techTopic}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-gray-800 mb-2">{caseTitle.title}</h3>
+                      <p className="text-sm text-gray-600">{caseTitle.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Alternative Cases - From Other Topics */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-emerald-600" />
+                  Verrassende casussen uit andere onderwerpen
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {caseTitles.slice(6, 12).map((caseTitle, index) => (
+                    <button
+                      key={index + 6}
+                      onClick={() => {
+                        const wasSelected = selectedCaseTitle?.index === index + 6;
+                        if (wasSelected) {
+                          playDeselectSound();
+                          setSelectedCaseTitle(null);
+                        } else {
+                          playSelectSound();
+                          setSelectedCaseTitle({ ...caseTitle, index: index + 6 });
+                        }
+                      }}
+                      className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                        selectedCaseTitle?.index === index + 6
+                          ? 'border-emerald-500 bg-emerald-50 shadow-lg'
+                          : 'border-gray-200 bg-white/80 hover:border-emerald-300 hover:bg-emerald-50/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                          <FileText className="w-6 h-6" />
+                        </div>
+                        {selectedCaseTitle?.index === index + 6 && (
+                          <CheckCircle className="w-6 h-6 text-emerald-600" />
+                        )}
+                        <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium">
+                          {caseTitle.techTopic}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-gray-800 mb-2">{caseTitle.title}</h3>
+                      <p className="text-sm text-gray-600">{caseTitle.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Loading State */}
+
+            {/* Back Button */}
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => {
                   playNavigationSound();
-                  setCurrentStep('areas');
+                  setCurrentPage('selection');
                 }}
-                className="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200"
+                disabled={isGenerating}
+                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                ← Terug naar gebieden
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Selectie</span>
               </button>
               
-              {canProceedFromTechnologies && (
+              {selectedCaseTitle && (
                 <button
-                  onClick={generateCase}
+                  onClick={() => {
+                    generateCaseFromTitle(selectedCaseTitle.title, selectedCaseTitle.techTopic);
+                  }}
                   disabled={isGenerating}
-                  className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all duration-200 hover:scale-105 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`flex items-center space-x-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                    isGenerating
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-200'
+                  }`}
                 >
-                  {isGenerating ? 'Genereren...' : 'Genereer casus →'}
+                  {isGenerating ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Casus wordt gegenereerd...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-6 h-6" />
+                      <span>Kies deze casus</span>
+                      <ArrowRight className="w-6 h-6" />
+                    </>
+                  )}
                 </button>
               )}
             </div>
           </div>
         )}
-
-        {/* Step 3: Generated Case */}
-        {currentStep === 'case' && generatedCase && (
+        
+        {currentPage === 'case' && (
           <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Gegenereerde Casus
-              </h2>
-              <p className="text-lg text-gray-600">
-                Hier is een ethische casus gebaseerd op je selecties.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-              <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-4">
-                <h3 className="text-2xl font-bold text-white">{generatedCase.title}</h3>
+            {/* Compact Case Description */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <FileText className="w-7 h-7 text-blue-600" />
+                  Ethische Casus
+                </h2>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {selectedFields.map(fieldId => {
+                    const field = WORK_FIELDS.find(f => f.id === fieldId);
+                    return field ? (
+                      <span key={fieldId} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {field.name}
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedTopics.map(topicId => {
+                    const topic = TECH_TOPICS.find(t => t.id === topicId);
+                    return topic ? (
+                      <span key={topicId} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                        {topic.name}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
               </div>
               
-              <div className="p-6 space-y-6">
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Beschrijving</h4>
-                  <p className="text-gray-700 leading-relaxed">{generatedCase.description}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Ethisch Dilemma</h4>
-                  <p className="text-gray-700 leading-relaxed">{generatedCase.ethicalDilemma}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Context</h4>
-                  <p className="text-gray-700 leading-relaxed">{generatedCase.context}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Betrokken Technologieën</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {generatedCase.technologies.map((tech) => (
-                      <span
-                        key={tech}
-                        className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Belangrijkste Belanghebbenden</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {generatedCase.stakeholders.map((stakeholder) => (
-                      <span
-                        key={stakeholder}
-                        className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium"
-                      >
-                        {stakeholder}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+              <div className="prose prose-lg max-w-none">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {result?.compactCase || result?.case}
+                </p>
               </div>
             </div>
 
+            {/* Ethical Compass Workflow */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8 text-center">
+              <div className="mb-6">
+                <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-3">
+                  <Brain className="w-8 h-8 text-purple-600" />
+                  Waar schommelt het morele kompas?
+                </h2>
+                <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+                  Selecteer de <strong>{requiredSelections} ethische spanningsvelden</strong> die volgens jou het meest relevant zijn voor deze casus. 
+                  Op basis van je keuze krijg je gerichte feedback en wordt de casus uitgebreid.
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+                <span className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs">
+                    {selectedDimensions.length}
+                  </div>
+                  van {requiredSelections} geselecteerd
+                </span>
+              </div>
+            </div>
+
+            {/* Ethical Dimensions Grid */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {ETHICAL_DIMENSIONS.map((dimension) => (
+                  <button
+                    key={dimension.id}
+                    onClick={() => toggleDimension(dimension.id)}
+                    disabled={showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                      selectedDimensions.includes(dimension.id)
+                        ? 'border-purple-500 bg-purple-50 shadow-lg'
+                        : showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)
+                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
+                        : 'border-gray-200 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                        <Brain className="w-6 h-6" />
+                      </div>
+                      {selectedDimensions.includes(dimension.id) && (
+                        <CheckCircle className="w-6 h-6 text-purple-600" />
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2 text-sm">{dimension.name}</h3>
+                    <p className="text-xs text-gray-600">{dimension.description}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Feedback Section */}
+            {showFeedback && result && (
+              <div className="backdrop-blur-xl bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl shadow-lg border border-green-200 p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                    <CheckCircle className="w-7 h-7 text-green-600" />
+                    Feedback: De Juiste Ethische Spanningsvelden
+                  </h2>
+                  <p className="text-gray-600">Hier zijn de drie meest relevante ethische dimensies voor deze casus:</p>
+                </div>
+                
+                <div className="space-y-4">
+                  {result.correctDimensions.map((dimensionId, index) => {
+                    const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
+                    const isUserCorrect = selectedDimensions.includes(dimensionId);
+                    
+                    return dimension ? (
+                      <div key={dimensionId} className={`p-6 rounded-2xl border-2 ${
+                        isUserCorrect 
+                          ? 'border-green-400 bg-green-50' 
+                          : 'border-orange-400 bg-orange-50'
+                      }`}>
+                        <div className="flex items-start gap-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-lg`}>
+                            {isUserCorrect ? (
+                              <CheckCircle className="w-6 h-6" />
+                            ) : (
+                              <span className="font-bold">{index + 1}</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-semibold text-gray-800">{dimension.name}</h3>
+                              {isUserCorrect && (
+                                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                  ✓ Correct gekozen
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-700 text-sm mb-3">{dimension.description}</p>
+                            <div className="bg-white/80 p-4 rounded-xl">
+                              <h4 className="font-medium text-gray-800 mb-2">Waarom dit relevant is voor deze casus:</h4>
+                              <p className="text-gray-700 text-sm">
+                                {result.explanations[index] || 'Uitleg wordt geladen...'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+                
+                <div className="mt-6 p-4 bg-white/80 rounded-xl">
+                  <h3 className="font-semibold text-gray-800 mb-2">Jouw Score:</h3>
+                  <p className="text-gray-700">
+                    Je hebt <strong>{selectedDimensions.filter(id => result.correctDimensions.includes(id)).length} van de {requiredSelections}</strong> juiste ethische spanningsvelden geïdentificeerd.
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length === requiredSelections && (
+                      <span className="text-green-600 font-medium"> Uitstekend werk! 🎉</span>
+                    )}
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length >= Math.floor(requiredSelections * 0.6) && selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < requiredSelections && (
+                      <span className="text-orange-600 font-medium"> Goed gedaan! 👍</span>
+                    )}
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < Math.floor(requiredSelections * 0.6) && (
+                      <span className="text-red-600 font-medium"> Probeer de casus nog eens goed door te lezen. 🤔</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
             <div className="flex justify-center space-x-4">
               <button
                 onClick={() => {
                   playNavigationSound();
-                  setCurrentStep('technologies');
+                  setCurrentPage('titles');
                 }}
-                className="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200"
+                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
               >
-                ← Andere technologieën
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Casus Titels</span>
               </button>
               
-              <button
-                onClick={generateCase}
-                disabled={isGenerating}
-                className="px-6 py-3 bg-purple-100 text-purple-700 font-semibold rounded-lg hover:bg-purple-200 transition-all duration-200 disabled:opacity-50"
-              >
-                {isGenerating ? 'Genereren...' : '🎲 Nieuwe casus'}
-              </button>
+              {selectedDimensions.length === requiredSelections && !showFeedback && (
+                <button
+                  onClick={() => {
+                    playConfirmSound();
+                    setShowFeedback(true);
+                  }}
+                  className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Toon Feedback</span>
+                </button>
+              )}
               
-              <button
-                onClick={selectCase}
-                className="px-8 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white font-semibold rounded-lg hover:from-green-700 hover:to-blue-700 transition-all duration-200 hover:scale-105 shadow-lg"
-              >
-                Kies deze casus →
-              </button>
+              {showFeedback && (
+                <button
+                  onClick={() => {
+                    playSelectSound();
+                    retryDimensionSelection();
+                  }}
+                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                  <span>Opnieuw proberen</span>
+                </button>
+              )}
+              
+              {showFeedback && (
+                <button
+                  onClick={() => {
+                    playNavigationSound();
+                    expandCase();
+                  }}
+                  disabled={isExpandingCase}
+                  className={`flex items-center space-x-2 px-8 py-3 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                    isExpandingCase
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
+                  }`}
+                >
+                  {isExpandingCase ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Wordt geladen...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      <span>Ga naar Belanghebbenden</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         )}
-
-        {/* Step 4: Stakeholders Analysis */}
-        {currentStep === 'stakeholders' && selectedCase && (
+        
+        {currentPage === 'stakeholders' && (
           <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Belanghebbenden Analyse
-              </h2>
-              <p className="text-lg text-gray-600">
-                Gedetailleerde analyse van de belanghebbenden in deze casus.
-              </p>
-            </div>
-
-            {/* Case Summary */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">{selectedCase.title}</h3>
-              <p className="text-gray-600">{selectedCase.description}</p>
-            </div>
-
-            {/* Stakeholders */}
-            {isGeneratingStakeholders ? (
-              <div className="text-center py-12">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mb-4"></div>
-                <p className="text-gray-600">Belanghebbenden worden geanalyseerd...</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {stakeholders.map((stakeholder, index) => (
-                  <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-xl font-bold text-gray-900">{stakeholder.name}</h4>
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        stakeholder.influence === 'Hoog' 
-                          ? 'bg-red-100 text-red-800'
-                          : stakeholder.influence === 'Gemiddeld'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}>
-                        {stakeholder.influence} invloed
-                      </span>
-                    </div>
-                    
-                    <p className="text-gray-600 mb-4">{stakeholder.role}</p>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <h5 className="font-semibold text-gray-900 mb-2">Belangen</h5>
-                        <ul className="space-y-1">
-                          {stakeholder.interests.map((interest, i) => (
-                            <li key={i} className="text-sm text-gray-600 flex items-center">
-                              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                              {interest}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <div>
-                        <h5 className="font-semibold text-gray-900 mb-2">Zorgen</h5>
-                        <ul className="space-y-1">
-                          {stakeholder.concerns.map((concern, i) => (
-                            <li key={i} className="text-sm text-gray-600 flex items-center">
-                              <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
-                              {concern}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
+            {/* Expanded Case Description */}
+            {result && (
+              <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                    <FileText className="w-7 h-7 text-blue-600" />
+                    Uitgebreide Casus Analyse
+                  </h2>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {result?.correctDimensions?.map(dimensionId => {
+                      const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
+                      return dimension ? (
+                        <span key={dimensionId} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                          {dimension.name}
+                        </span>
+                      ) : null;
+                    })}
                   </div>
-                ))}
+                </div>
+                
+                {(result.expandedCase || result.compactCase || result.case) ? (
+                  <div className="prose prose-lg max-w-none">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {result.expandedCase || result.compactCase || result.case}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <p className="text-yellow-800">
+                      De casus wordt geladen... Als dit bericht blijft staan, ga dan terug naar de vorige pagina en probeer opnieuw.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
-            <div className="text-center">
+            {/* Stakeholders */}
+            {result?.stakeholders && result.stakeholders.length > 0 && (
+              <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                    <UserCheck className="w-7 h-7 text-indigo-600" />
+                    Belanghebbenden & Rollen
+                  </h2>
+                  <p className="text-gray-600">Verschillende perspectieven voor een rijke discussie.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {result.stakeholders.map((stakeholder, index) => (
+                    <div key={index} className="bg-white/80 rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-800 text-lg mb-2">{stakeholder.role}</h3>
+                          <div className="space-y-3">
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-600 mb-1">Belangen:</h4>
+                              <p className="text-gray-700 text-sm">{stakeholder.interests}</p>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-600 mb-1">Perspectief:</h4>
+                              <p className="text-gray-700 text-sm">{stakeholder.perspective}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-4">
               <button
                 onClick={() => {
                   playNavigationSound();
-                  setCurrentStep('case');
+                  setCurrentPage('case');
                 }}
-                className="px-6 py-3 bg-gray-100 text-gray-700 font-semibold rounded-lg hover:bg-gray-200 transition-all duration-200"
+                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
               >
-                ← Terug naar casus
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Casus</span>
+              </button>
+              <button
+                onClick={() => {
+                  playNavigationSound();
+                  resetForm();
+                }}
+                className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Hoofdmenu</span>
               </button>
             </div>
           </div>
