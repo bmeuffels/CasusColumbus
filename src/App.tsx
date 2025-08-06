@@ -300,7 +300,7 @@ function App() {
     });
   };
 
-  const toggleTopic = (topicId: string) => {
+  const handleTopicToggle = (topicId: string) => {
     setSelectedTopics(prev => {
       if (prev.includes(topicId)) {
         playDeselectSound();
@@ -583,16 +583,17 @@ function App() {
                   <button
                     key={field.id}
                     onClick={() => {
-                      playNavigationSound();
+                      const wasSelected = selectedFields.includes(field.id);
                       handleFieldToggle(field.id);
-                      // Play sound after state update
+                      
+                      // Play appropriate sound based on current state
                       setTimeout(() => {
-                        if (selectedFields.includes(field.id)) {
-                          playDeselectSound();
+                        if (wasSelected) {
+                          playDeselectSound(); // Was selected, now deselected
                         } else {
-                          playSelectSound();
+                          playSelectSound(); // Was not selected, now selected
                         }
-                      }, 10);
+                      }, 0);
                     }}
                     disabled={!selectedFields.includes(field.id) && selectedFields.length >= 2}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
@@ -632,8 +633,7 @@ function App() {
                 {TECH_TOPICS.map((topic) => (
                   <button
                     key={topic.id}
-                    onClick={() => toggleTopic(topic.id)}
-                    disabled={!selectedTopics.includes(topic.id) && selectedTopics.length >= 1}
+                    onClick={() => handleTopicToggle(topic.id)}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedTopics.includes(topic.id)
                         ? 'border-indigo-500 bg-indigo-50 shadow-lg'
