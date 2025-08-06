@@ -568,7 +568,7 @@ function App() {
                   title="Geluid aan/uit"
                 >
           className="fixed top-4 right-16 z-50 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg shadow-lg transition-colors duration-200 flex items-center gap-2 group"
-                </button>
+          className="fixed top-4 right-16 z-50 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-lg transition-all duration-200 flex items-center gap-2"
               </>
             )}
           </div>
