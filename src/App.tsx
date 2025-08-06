@@ -567,7 +567,7 @@ function App() {
                   Opnieuw
                 </button>
               )}
-              
+
               <button
                 className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
                 title="Geluid aan/uit"
