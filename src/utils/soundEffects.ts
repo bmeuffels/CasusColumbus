@@ -4,10 +4,12 @@
 class SoundEffects {
   private audioContext: AudioContext | null = null;
   private isEnabled: boolean = true;
+  private swordSoundBuffer: AudioBuffer | null = null;
 
   constructor() {
     // Initialize AudioContext on first user interaction
     this.initializeAudioContext();
+    this.loadSwordSound();
   }
 
   private initializeAudioContext() {
@@ -34,10 +36,44 @@ class SoundEffects {
     return this.audioContext;
   }
 
+  private async loadSwordSound() {
+    try {
+      const response = await fetch('/Schrapend piratenzwaard.mp3');
+      const arrayBuffer = await response.arrayBuffer();
+      
+      if (this.audioContext) {
+        this.swordSoundBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+      }
+    } catch (error) {
+      console.warn('Could not load sword sound:', error);
+    }
+  }
+
   // Subtle wooden click sound for button selections
   async playSelectSound() {
     const ctx = await this.ensureAudioContext();
     if (!ctx) return;
+
+    // Use uploaded sword sound if available
+    if (this.swordSoundBuffer) {
+      try {
+        const source = ctx.createBufferSource();
+        const gainNode = ctx.createGain();
+        
+        source.buffer = this.swordSoundBuffer;
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        // Adjust volume for professional use
+        gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+        
+        source.start(ctx.currentTime);
+        return;
+      } catch (error) {
+        console.warn('Error playing sword sound:', error);
+        // Fall back to generated sound
+      }
+    }
 
     try {
       // Create realistic wooden ship creak with rope friction
@@ -146,6 +182,27 @@ class SoundEffects {
   async playDeselectSound() {
     const ctx = await this.ensureAudioContext();
     if (!ctx) return;
+
+    // Use uploaded sword sound at lower volume for deselect
+    if (this.swordSoundBuffer) {
+      try {
+        const source = ctx.createBufferSource();
+        const gainNode = ctx.createGain();
+        
+        source.buffer = this.swordSoundBuffer;
+        source.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        
+        // Lower volume for deselect action
+        gainNode.gain.setValueAtTime(0.15, ctx.currentTime);
+        
+        source.start(ctx.currentTime);
+        return;
+      } catch (error) {
+        console.warn('Error playing sword sound for deselect:', error);
+        // Fall back to generated sound
+      }
+    }
 
     try {
       // Create realistic wood settling with rope release
