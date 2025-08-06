@@ -8,7 +8,6 @@ import {
   Building, 
   Briefcase,
   Globe,
-  Eye,
   CheckCircle,
   ArrowRight,
   FileText,
