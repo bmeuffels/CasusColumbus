@@ -13,7 +13,6 @@ import {
   Globe,
   Database,
   Eye,
-  CheckCircle,
   ArrowRight,
   FileText,
   UserCheck,
