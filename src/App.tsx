@@ -268,6 +268,12 @@ function App() {
   const [isExpandingCase, setIsExpandingCase] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
+  const [selectedCase, setSelectedCase] = useState<any>(null);
+
+  const handleRestart = () => {
+    setSelectedCase(null);
+    resetForm();
+  };
 
   const toggleField = (fieldId: string) => {
     const wasSelected = selectedFields.includes(fieldId);
@@ -536,18 +542,32 @@ function App() {
               <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg">
                 <img 
                   src="https://uca40e2e7968751e358787b8514d.previews.dropboxusercontent.com/p/thumb/ACvvuRSMAx1PGgNAvH7JI6U6L7zJo-QsyKJfcIWEydCKrZWOb3ERhhF181olVeYRuoPb1aZvAjUjwhelQoDArC-4fe5DOj070I3-4PerbSgAWxhFjpe-LqKqGpCMQKvfKUdGwkX-m21TNclrkN9sUVgFkv9vVTIh4LB7e-T4h8-KBbpH8UK5hf-iqzQrvNJ1n2JT6t0oUhKBjqBiHCI2Ocfllh6V_1gtI3lbsmF0-j3Uo-KOoPHM8tAlnaXuKXrBhcmOgEkwydjF9EWsbPKnMlpBFwMv3eXoNQ7Ao-idF1weVCli9rRI926K6Sqi3l431vHF_nSGB0F7349V3f0l7MnRQNzSa_M_AP1ZKRwCd9mg4Q/p.jpeg"
-                  alt="Logo"
+                  alt="Casus Columbus Logo"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Ethische Casus Generator
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                  Casus Columbus
                 </h1>
-                <p className="text-gray-600 text-sm">Ontdek ethische dilemma's in technologie</p>
+                <p className="text-gray-600 text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-400" />
+                  Ethiek & Technologie Casus Generator voor professionals
+                </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-3">
+              {/* Opnieuw knop - alleen zichtbaar als er een casus is geselecteerd */}
+              {selectedCase && (
+                <button
+                  onClick={handleRestart}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white font-medium"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Opnieuw
+                </button>
+              )}
+              
               <button
                 className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
                 title="Geluid aan/uit"
