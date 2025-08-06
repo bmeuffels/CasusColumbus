@@ -536,13 +536,15 @@ function App() {
               <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg">
                 <img 
                   src="https://uca40e2e7968751e358787b8514d.previews.dropboxusercontent.com/p/thumb/ACvvuRSMAx1PGgNAvH7JI6U6L7zJo-QsyKJfcIWEydCKrZWOb3ERhhF181olVeYRuoPb1aZvAjUjwhelQoDArC-4fe5DOj070I3-4PerbSgAWxhFjpe-LqKqGpCMQKvfKUdGwkX-m21TNclrkN9sUVgFkv9vVTIh4LB7e-T4h8-KBbpH8UK5hf-iqzQrvNJ1n2JT6t0oUhKBjqBiHCI2Ocfllh6V_1gtI3lbsmF0-j3Uo-KOoPHM8tAlnaXuKXrBhcmOgEkwydjF9EWsbPKnMlpBFwMv3eXoNQ7Ao-idF1weVCli9rRI926K6Sqi3l431vHF_nSGB0F7349V3f0l7MnRQNzSa_M_AP1ZKRwCd9mg4Q/p.jpeg"
-                  alt="Casus Columbus Logo"
+                  alt="Logo"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">Casus Columbus</h1>
-                <p className="text-sm text-gray-600">Ethische Technologie Verkenner</p>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  Ethische Casus Generator
+                </h1>
+                <p className="text-gray-600 text-sm">Ontdek ethische dilemma's in technologie</p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
