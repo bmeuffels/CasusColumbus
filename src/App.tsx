@@ -288,17 +288,22 @@ function App() {
     }
   };
 
-  const handleFieldToggle = (fieldId: string) => {
-    const wasSelected = selectedFields.includes(fieldId);
-    setSelectedFields(prev => {
-      if (prev.includes(fieldId)) {
-        return prev.filter(id => id !== fieldId);
-      } else if (prev.length < 2) {
-        return [...prev, fieldId];
+  const handleFieldToggle = async (fieldId: string) => {
+    const isCurrentlySelected = selectedFields.includes(fieldId);
+    
+    if (!isMuted) {
+      if (isCurrentlySelected) {
+        await playDeselectSound();
       } else {
-        return prev;
+        await playSelectSound();
       }
-    });
+    }
+    
+    if (isCurrentlySelected) {
+      setSelectedFields(prev => prev.filter(id => id !== fieldId));
+    } else {
+      setSelectedFields(prev => [...prev, fieldId]);
+    }
   };
 
   const toggleTopic = (topicId: string) => {
