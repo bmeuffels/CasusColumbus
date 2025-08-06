@@ -584,12 +584,12 @@ function App() {
                   <button
                     key={field.id}
                     onClick={() => {
+                      playNavigationSound();
                       handleFieldToggle(field.id);
                       // Play sound after state update
                       setTimeout(() => {
                         if (selectedFields.includes(field.id)) {
                           playDeselectSound();
-                        } else {
                           playSelectSound();
                         }
                       }, 10);
