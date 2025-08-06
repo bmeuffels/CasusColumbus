@@ -545,7 +545,7 @@ function App() {
                 />
               </div>
               <div>
-            {(currentStep > 0 || selectedFields.length > 0 || selectedTopics.length > 0 || selectedCase || showStakeholders) && (
+                <h1 className="text-2xl font-bold text-gray-800">
                   Casus Columbus
                 </h1>
                 <p className="text-gray-600 text-sm flex items-center gap-2">
@@ -553,7 +553,7 @@ function App() {
                   Ethiek & Technologie Casus Generator voor professionals
                 </p>
               </div>
-            )}
+            </div>
             
             <div className="flex items-center gap-3">
               <button
@@ -576,7 +576,7 @@ function App() {
           </div>
         </div>
       </header>
-          {(selectedFields.length > 0 || selectedTopics.length > 0 || selectedCase || showStakeholders) && (
+
       <main className="max-w-7xl mx-auto px-6 py-8 relative z-10">
         {currentPage === 'selection' ? (
           <div className="space-y-8">
