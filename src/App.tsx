@@ -572,7 +572,11 @@ function App() {
                     key={field.id}
                     onClick={() => toggleField(field.id)}
                     onClick={() => {
-                      handleFieldToggle(field.id);
+                      if (selectedFields.includes(field.id)) {
+                        playDeselectSound();
+                      } else {
+                        playSelectSound();
+                      }
                       if (wasSelected) {
                         playDeselectSound();
                         setSelectedCaseTitle(null);
