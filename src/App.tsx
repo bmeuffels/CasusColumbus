@@ -569,7 +569,7 @@ function App() {
                   className="absolute right-4 top-4 bg-gray-600 hover:bg-gray-700 text-white w-10 h-10 rounded-lg transition-colors duration-200 flex items-center justify-center"
                   title="Geluid aan/uit"
                 >
-                  <Volume2 className="w-5 h-5" />
+          className="fixed top-4 right-16 z-50 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg shadow-lg transition-colors duration-200 flex items-center gap-2 group"
                 </button>
               </>
             )}
