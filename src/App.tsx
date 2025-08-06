@@ -293,6 +293,14 @@ function App() {
       if (prev.includes(fieldId)) {
         return prev.filter(id => id !== fieldId);
       } else if (prev.length < 2) {
+        return [...prev, fieldId];
+      } else {
+        return prev;
+      }
+    });
+  };
+
+  const handleTopicToggle = (topicId: string) => {
     setSelectedTopics(prev => {
       if (prev.includes(topicId)) {
         playDeselectSound();
@@ -587,16 +595,6 @@ function App() {
                         }
                       }, 0);
                     }}
-                      playNavigationSound();
-                      handleFieldToggle(field.id);
-                      // Play sound after state update
-                      setTimeout(() => {
-                        if (selectedFields.includes(field.id)) {
-                          playDeselectSound();
-                          playSelectSound();
-                        }
-                      }, 10);
-                    }}
                     disabled={!selectedFields.includes(field.id) && selectedFields.length >= 2}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedFields.includes(field.id)
@@ -633,6 +631,8 @@ function App() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {TECH_TOPICS.map((topic) => (
+                  <button
+                    key={topic.id}
                     onClick={() => handleTopicToggle(topic.id)}
                     className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
                       selectedTopics.includes(topic.id)
