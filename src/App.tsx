@@ -554,13 +554,15 @@ function App() {
                 onClick={() => {
                   playNavigationSound();
                   resetForm();
-                }}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-800 hover:bg-blue-50 rounded-xl transition-all duration-300 border border-blue-200 hover:border-blue-300"
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleReset}
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors duration-200"
               >
-                <RefreshCw className="w-4 h-4" />
-                <span className="text-sm font-medium">Opnieuw</span>
+                <RotateCcw className="w-4 h-4" />
+                <span>Opnieuw</span>
               </button>
-            )}
+            </div>
           </div>
         </div>
       </header>
