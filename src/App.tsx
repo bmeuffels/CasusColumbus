@@ -341,7 +341,9 @@ function App() {
   const generateCase = async () => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
-    playNavigationSound();
+    if (!isMuted) {
+      playNavigationSound();
+    }
     setIsGeneratingTitles(true);
 
     const selectedFieldNames = selectedFields.map(id => 
