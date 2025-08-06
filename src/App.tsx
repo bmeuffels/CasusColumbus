@@ -587,7 +587,7 @@ function App() {
                   <Volume2 className="w-5 h-5 text-white" />
                 )}
               </button>
-            </div>
+          <img src="/Avc.png" alt="Het Ai van Columbus Logo" className="w-8 h-8 object-contain" />
           </div>
         </div>
       </header>
