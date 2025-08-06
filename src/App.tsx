@@ -542,6 +542,17 @@ function App() {
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
                   Casus Columbus
+            {/* Opnieuw knop - alleen zichtbaar als er een casus is geselecteerd */}
+            {selectedCase && (
+              <button
+                onClick={handleRestart}
+                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white font-medium"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Opnieuw
+              </button>
+            )}
+            
                 </h1>
                 <p className="text-gray-600 text-sm flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-blue-400" />
@@ -549,7 +560,6 @@ function App() {
                 </p>
               </div>
             </div>
-            
             <div className="flex items-center gap-3">
               <button
                 className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
@@ -684,16 +694,6 @@ function App() {
                       <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                       <span>Casus opties worden geladen...</span>
                     </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-6 h-6" />
-                      <span>Toon Casus Opties</span>
-                      <ArrowRight className="w-6 h-6" />
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
           </div>
         ) : null}
         
