@@ -545,7 +545,8 @@ function App() {
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-800">
+            {/* Debug: Always show restart button for testing */}
+            {true && (
                   Casus Columbus
                 </h1>
                 <p className="text-gray-600 text-sm flex items-center gap-2">
