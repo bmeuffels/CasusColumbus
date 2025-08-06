@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { ChevronRight, RotateCcw, Users, CheckCircle, AlertCircle, Lightbulb, ArrowLeft, Sparkles, Volume2 } from 'lucide-react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
   Users, 
@@ -19,10 +19,9 @@ import {
   FileText,
   UserCheck,
   Sparkles,
-  RefreshCw,
-  RotateCcw,
-  Volume2
+  RefreshCw
 } from 'lucide-react';
+import { useState } from 'react';
 
 interface WorkField {
   id: string;
