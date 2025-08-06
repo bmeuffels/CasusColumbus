@@ -543,24 +543,24 @@ function App() {
               >
                 <RotateCcw className="w-4 h-4" />
                 Opnieuw
-              </button>
-            )}
+          {selectedCase && (
             <button
-              onClick={handleMuteToggle}
-              className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 group"
-              title="Geluid aan/uit"
+              onClick={handleReset}
+              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white font-medium"
+              title="Begin opnieuw"
             >
-              <Volume2 className="w-5 h-5 text-white group-hover:text-yellow-300" />
+              <RotateCcw className="w-4 h-4" />
+              Opnieuw
             </button>
-            
-                </h1>
-                <p className="text-gray-600 text-sm flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-blue-400" />
-                  Ethiek & Technologie Casus Generator voor professionals
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
+          )}
+          
+          {/* Mute button - always visible, always on the right */}
+          <button
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-200 hover:scale-105 text-white"
+            title="Geluid aan/uit"
+          >
+            <Volume2 className="w-5 h-5" />
+          </button>
               <button
                 className="bg-white/20 hover:bg-white/30 text-gray-600 hover:text-gray-800 p-2 rounded-lg transition-all duration-200 hover:scale-105 border border-blue-200 hover:border-blue-300"
                 title="Geluid aan/uit"
