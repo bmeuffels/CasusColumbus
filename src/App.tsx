@@ -1,4 +1,4 @@
-import { ChevronRight, RotateCcw, Users, CheckCircle, AlertCircle, Lightbulb, ArrowLeft, Sparkles, Volume2 } from 'lucide-react';
+import React, { useState } from 'react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { 
   Users, 
@@ -19,7 +19,9 @@ import {
   FileText,
   UserCheck,
   Sparkles,
-  RefreshCw
+  RefreshCw,
+  RotateCcw,
+  Volume2
 } from 'lucide-react';
 
 interface WorkField {
@@ -509,6 +511,11 @@ function App() {
     setCurrentPage('selection');
   };
 
+  const handleReset = () => {
+    playNavigationSound();
+    resetForm();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
       {/* Background Elements */}
@@ -550,27 +557,24 @@ function App() {
             </div>
             
             {(selectedFields.length > 0 || selectedTopics.length > 0 || currentPage !== 'selection') && (
-              <button
-                onClick={() => {
-                  playNavigationSound();
-                  resetForm();
-            <>
-              <button
-                onClick={handleReset}
-                className="absolute right-16 top-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
-              >
-                <RotateCcw className="w-4 h-4" />
-                Opnieuw
-              </button>
-              
-              {/* Mute button - always visible when reset is visible */}
-              <button
-                className="absolute right-4 top-4 bg-gray-600 hover:bg-gray-700 text-white w-10 h-10 rounded-lg transition-colors duration-200 flex items-center justify-center"
-                title="Geluid aan/uit"
-              >
-                <Volume2 className="w-5 h-5" />
-              </button>
-            </>
+              <>
+                <button
+                  onClick={handleReset}
+                  className="absolute right-16 top-4 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Opnieuw
+                </button>
+                
+                {/* Mute button - always visible when reset is visible */}
+                <button
+                  className="absolute right-4 top-4 bg-gray-600 hover:bg-gray-700 text-white w-10 h-10 rounded-lg transition-colors duration-200 flex items-center justify-center"
+                  title="Geluid aan/uit"
+                >
+                  <Volume2 className="w-5 h-5" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </header>
