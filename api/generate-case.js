@@ -99,18 +99,29 @@ Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieve
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Mistral API Error Details:', errorText);
       throw new Error(`Mistral API Error: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log('Mistral API Response:', data);
     const content = data.choices[0].message.content;
     
     // Parse JSON from the response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      const parsedResult = JSON.parse(jsonMatch[0]);
+      try {
+        const parsedResult = JSON.parse(jsonMatch[0]);
+        console.log('Parsed result:', parsedResult);
+      } catch (parseError) {
+        console.error('JSON Parse Error:', parseError);
+        console.error('Content to parse:', jsonMatch[0]);
+        throw new Error('Ongeldige JSON response van AI');
+      }
       return res.status(200).json(parsedResult);
     } else {
+      console.error('No JSON found in response:', content);
       throw new Error('Geen geldige JSON gevonden in response');
     }
   } catch (error) {
