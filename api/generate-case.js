@@ -108,21 +108,40 @@ Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieve
     console.log('Mistral API Response:', data);
     const content = data.choices[0].message.content;
     
-    // Parse JSON from the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        const parsedResult = JSON.parse(jsonMatch[0]);
-        console.log('Parsed result:', parsedResult);
-      } catch (parseError) {
-        console.error('JSON Parse Error:', parseError);
-        console.error('Content to parse:', jsonMatch[0]);
-        throw new Error('Ongeldige JSON response van AI');
+    // Parse JSON from the response with better error handling
+    try {
+      // First try to find JSON in the response
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        console.error('No JSON found in response:', content);
+        throw new Error('Geen geldige JSON gevonden in AI response');
       }
+      
+      const jsonString = jsonMatch[0];
+      console.log('JSON string to parse:', jsonString);
+      
+      // Clean up common JSON issues
+      const cleanedJson = jsonString
+        .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Remove control characters
+        .replace(/,(\s*[}\]])/g, '$1') // Remove trailing commas
+        .trim();
+      
+      const parsedResult = JSON.parse(cleanedJson);
+      console.log('Successfully parsed result:', parsedResult);
+      
+      // Validate required fields
+      if (!parsedResult.case || !parsedResult.correctDimensions || !parsedResult.stakeholders) {
+        throw new Error('Ontbrekende vereiste velden in AI response');
+      }
+      
       return res.status(200).json(parsedResult);
-    } else {
-      console.error('No JSON found in response:', content);
-      throw new Error('Geen geldige JSON gevonden in response');
+      
+    } catch (parseError) {
+      console.error('JSON Parse Error:', parseError);
+      console.error('Original content:', content);
+      
+      // If JSON parsing fails, try to regenerate with a simpler prompt
+      throw new Error(`Fout bij verwerken AI response: ${parseError.message}`);
     }
   } catch (error) {
     console.error('Error generating case:', error);
