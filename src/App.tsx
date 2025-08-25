@@ -589,7 +589,7 @@ function App() {
                 )}
               </button>
               <img src="/Avc.png" alt="Het Ai van Columbus Logo" className="w-8 h-8 object-contain" />
-            </div>
+          <img src="/Avc.png" alt="AVC Logo" className="w-8 h-8 object-contain" />
           </div>
         </div>
       </header>
