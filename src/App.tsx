@@ -262,6 +262,7 @@ function App() {
   const [result, setResult] = useState<CaseResult | null>(null);
   const [currentPage, setCurrentPage] = useState<'selection' | 'titles' | 'case' | 'stakeholders'>('selection');
   const [isExpandingCase, setIsExpandingCase] = useState(false);
+  // Sync trigger - versie 1.1
   const [showFeedback, setShowFeedback] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
   const [isMuted, setIsMuted] = useState(false);
