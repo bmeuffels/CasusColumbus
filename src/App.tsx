@@ -527,7 +527,6 @@ function App() {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 -z-10"
           style={{
             backgroundImage: 'url(https://ucb5ea564f8e92f3121e32939587.previews.dropboxusercontent.com/p/thumb/ACta83wQsHX0ZB7jyXRqlMaKWLHo439GXjcgXp7cnNmimOpqQ77W8aF2HbCDe34W9EzK3Wnb_XrMEWpHZYG_o4vWix6kaqN4WmlcLFNuz7pcgAMVq_uK5m)'
-          }
-          }
-  )
+          }}
+        />
 }
