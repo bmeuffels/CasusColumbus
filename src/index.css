@@ -13,6 +13,12 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-image: url('https://ucb5ea564f8e92f3121e32939587.previews.dropboxusercontent.com/p/thumb/ACvoFVh1wTN3lWhgmUEWi_RRPQsT7iF-vysiVCk2HKxpuM6FG1Va-knCdq-vfDpWsyT0mQsvOrYmH9qbHT_tAbakffSmE46sTH-U1KKeH-UnomJdmulwCZiL0e0aWN2qgGs_wgU4Mz0RgWnmAxWrdRBWPoH6V9oZTdaBq-2uX9eOmR90iTILuKXeNLQbmHuMwZFt5eeeCf7bE20Mk-G272lbG_tH1SLIGYBFDPiNeRAtPiRdpBTZ2aHCuGw3oAtoEFhOqengjwj3DatOgNg3eTk4doYPbQI2TjHOveo2KKWEdsJwlySgom8Szak8N49M3LjgQsBuJj3mtrGXJAVBSdBWdEbITktv4r1bBcdnNtbV0oQ5761jcwcGyC4I9isVoOIkbB54mH1b2B6u4Y7r9cenJvld9nZTNpBQajek-Ek21ltISKV2nGt6qs1xuIEXlamjN4hhETOUpuCwD7K7U1P7OjaUoZFdl1DC8CXNc7KNcfKPEE8_XoVSjGEcDDsc3HIAQCB04QoZbcJQWT55ZaIGp03qNvkztd8VpsOakSLB9mzF5PjDpaM3n7ySqjrenvAwUSsENETcw13vEi9t3vUietK-PFvdVfbK08xEnIjKOQ/p.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 }
 
