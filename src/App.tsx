@@ -542,7 +542,7 @@ function App() {
             <div className="flex items-center space-x-4">
               <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg">
                 <img 
-                  src="https://uc74229bdab694ca692c57aa4902.previews.dropboxusercontent.com/p/thumb/ACvvfZfB5Aip8u5EmmA5AIU1LklBSm--Szuh-PTl3aQPm4BIHmHo0unB1FQ2437hgGq7ybtVaaOBO9b8VhlArGqS4t5wZxZUmXvwI-GZtc7PJMJimXWVwaBoT7XyrIpx2OvfloYhV8jyAIF_2TFoAQMjoi4ZeUAEQn_zF-f2i7iZXQcNOjSRSQ0GcSabOzzLqzKWYYjq4IDPV1uPN5Y0zkfTvRtBJ_3TetLMxqF5nFNWypd5q9jhDKBFjPzv2Op5jdompZXFDQvK8lRl4gHru_Mu4Ym1BP1Et0OqKcPUA2iPY3kSWSss6OunJxLicHntd_CYQe8aBiQH_UucGGaCEPxlzW5zC5Z0OkDl_FX1MjOpxA/p.png"
+                  src="https://uca40e2e7968751e358787b8514d.previews.dropboxusercontent.com/p/thumb/ACvvuRSMAx1PGgNAvH7JI6U6L7zJo-QsyKJfcIWEydCKrZWOb3ERhhF181olVeYRuoPb1aZvAjUjwhelQoDArC-4fe5DOj070I3-4PerbSgAWxhFjpe-LqKqGpCMQKvfKUdGwkX-m21TNclrkN9sUVgFkv9vVTIh4LB7e-T4h8-KBbpH8UK5hf-iqzQrvNJ1n2JT6t0oUhKBjqBiHCI2Ocfllh6V_1gtI3lbsmF0-j3Uo-KOoPHM8tAlnaXuKXrBhcmOgEkwydjF9EWsbPKnMlpBFwMv3eXoNQ7Ao-idF1weVCli9rRI926K6Sqi3l431vHF_nSGB0F7349V3f0l7MnRQNzSa_M_AP1ZKRwCd9mg4Q/p.jpeg"
                   alt="Casus Columbus Logo"
                   className="w-full h-full object-cover"
                 />
@@ -588,6 +588,7 @@ function App() {
                   <Volume2 className="w-5 h-5 text-white" />
                 )}
               </button>
+              <img src="/Avc.png" alt="Het Ai van Columbus Logo" className="w-8 h-8 object-contain" />
             </div>
           </div>
         </div>
