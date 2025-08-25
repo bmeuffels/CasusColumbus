@@ -519,7 +519,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
+    <div className="min-h-screen">
       {/* Background Elements */}
       <div className="absolute inset-0 z-0">
         {/* Background Image */}
