@@ -542,7 +542,7 @@ function App() {
             <div className="flex items-center space-x-4">
               <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg">
                 <img 
-                  src="https://uc9946a648acdd396ee54c2e1cd2.previews.dropboxusercontent.com/p/thumb/ACvDKh5qtMKTDh-3ciuL2mUlGnyQxUf15VSh6DUdzRH3TA18SXFfC-ogAvXqdiq03Uibf70pNZSa0nwvORYfx1FnYRNvXi6ZxjuhS1I5pvvfRUHmcCU08_H2Q_vld9wLhHLvLmdzJM5i7RF8ZC8hRedqPuJ2cvgs8MlGP59Md2ilpB3deNoGNtjsOMiNb86kOv32DPk5OAJoTS_DG7me2i8RiRmf-9d110iM0PgYYCT8EV4ok-PFKxd_SoPjye1-T9kig_DVnDQf6sXO5OnugeuZxisCI2METHisgqmSpaRUPMJDnMooJq8Z_zJEcV9Gv13d2eSzjA5OeoK4kkD6XHH7dmwWcZCUbiJCYvOMw2aCTw/p.png"
+                  src="https://uc74229bdab694ca692c57aa4902.previews.dropboxusercontent.com/p/thumb/ACvvfZfB5Aip8u5EmmA5AIU1LklBSm--Szuh-PTl3aQPm4BIHmHo0unB1FQ2437hgGq7ybtVaaOBO9b8VhlArGqS4t5wZxZUmXvwI-GZtc7PJMJimXWVwaBoT7XyrIpx2OvfloYhV8jyAIF_2TFoAQMjoi4ZeUAEQn_zF-f2i7iZXQcNOjSRSQ0GcSabOzzLqzKWYYjq4IDPV1uPN5Y0zkfTvRtBJ_3TetLMxqF5nFNWypd5q9jhDKBFjPzv2Op5jdompZXFDQvK8lRl4gHru_Mu4Ym1BP1Et0OqKcPUA2iPY3kSWSss6OunJxLicHntd_CYQe8aBiQH_UucGGaCEPxlzW5zC5Z0OkDl_FX1MjOpxA/p.png"
                   alt="Casus Columbus Logo"
                   className="w-full h-full object-cover"
                 />
