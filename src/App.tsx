@@ -542,7 +542,7 @@ function App() {
             <div className="flex items-center space-x-4">
               <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg">
                 <img 
-                  src="/image.png"
+                  src="/logo zonder ondertitel.svg"
                   alt="Casus Columbus Logo"
                   className="w-full h-full object-cover"
                 />
