@@ -1257,7 +1257,7 @@ function App() {
                     )}
                     {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length >= Math.floor(requiredSelections * 0.6) && selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < requiredSelections && (
                       <span className="text-orange-600 font-medium"> Goed gedaan! 👍</span>
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Casus Beschrijving</h2>
+                    )}
                     {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < Math.floor(requiredSelections * 0.6) && (
                       <span className="text-red-600 font-medium"> Probeer de casus nog eens goed door te lezen. 🤔</span>
                     )}
