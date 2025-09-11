@@ -491,4 +491,8 @@ function App() {
       setResult({
         case: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
         compactCase: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
-        expande
+        expandedCase: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
+        correctDimensions: [],
+        explanations: [],
+        stakeholders: []
+      });
