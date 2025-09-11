@@ -1114,6 +1114,14 @@ function App() {
                   <FileText className="w-7 h-7 text-blue-600" />
                   Ethische Casus
                 </h2>
+                {selectedCaseTitle && (
+                  <div className="mb-6 pb-4 border-b border-gray-200">
+                    <h2 className="text-2xl font-semibold text-gray-700 mb-2">{selectedCaseTitle.title}</h2>
+                    {selectedCaseTitle.description && (
+                      <p className="text-gray-600 italic">{selectedCaseTitle.description}</p>
+                    )}
+                  </div>
+                )}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {selectedFields.map(fieldId => {
                     const field = WORK_FIELDS.find(f => f.id === fieldId);
@@ -1346,6 +1354,14 @@ function App() {
                     <FileText className="w-7 h-7 text-blue-600" />
                     Uitgebreide Casus Analyse
                   </h2>
+                  {selectedCaseTitle && (
+                    <div className="mb-6 pb-4 border-b border-gray-200">
+                      <h2 className="text-2xl font-semibold text-gray-700 mb-2">{selectedCaseTitle.title}</h2>
+                      {selectedCaseTitle.description && (
+                        <p className="text-gray-600 italic">{selectedCaseTitle.description}</p>
+                      )}
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-2 mb-4">
                     {result?.correctDimensions?.map(dimensionId => {
                       const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
