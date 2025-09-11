@@ -843,6 +843,145 @@ function App() {
               </div>
             </div>
 
+            {/* Extra Options Section */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-amber-600" />
+                  Andere mogelijkheden
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Wil je een andere aanpak? Kies uit deze alternatieve opties.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* Random Case Button */}
+                <button
+                  onClick={() => handleExtraOption({ type: 'random' })}
+                  disabled={isProcessingExtra || caseTitles.length === 0}
+                  className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-amber-300 hover:bg-amber-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <RefreshCw className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">Kies een willekeurige casus</h3>
+                  <p className="text-sm text-gray-600">Laat het toeval beslissen uit de gegenereerde opties</p>
+                </button>
+
+                {/* URL Case Button */}
+                <button
+                  onClick={() => setShowExtraOptions(showExtraOptions === false ? 'url' : false)}
+                  disabled={isProcessingExtra}
+                  className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <Globe className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">Casus uit de actualiteit</h3>
+                  <p className="text-sm text-gray-600">Voer een nieuwsartikel URL in voor een actuele casus</p>
+                </button>
+
+                {/* Custom Case Button */}
+                <button
+                  onClick={() => setShowExtraOptions(showExtraOptions === false ? 'custom' : false)}
+                  disabled={isProcessingExtra}
+                  className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">Beschrijf zelf een casus</h3>
+                  <p className="text-sm text-gray-600">Voer je eigen praktijkcasus in voor analyse</p>
+                </button>
+              </div>
+
+              {/* URL Input Form */}
+              {showExtraOptions === 'url' && (
+                <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
+                  <h4 className="font-semibold text-gray-800 mb-3">Voer een nieuwsartikel URL in</h4>
+                  <div className="space-y-4">
+                    <input
+                      type="url"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      placeholder="https://www.example.com/nieuwsartikel"
+                      className="w-full px-4 py-3 rounded-xl border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                    />
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          if (urlInput.trim()) {
+                            handleExtraOption({ type: 'url', data: urlInput.trim() });
+                            setUrlInput('');
+                            setShowExtraOptions(false);
+                          }
+                        }}
+                        disabled={!urlInput.trim() || isProcessingExtra}
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isProcessingExtra ? 'Verwerken...' : 'Analyseer artikel'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowExtraOptions(false);
+                          setUrlInput('');
+                        }}
+                        className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+                      >
+                        Annuleren
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Custom Case Input Form */}
+              {showExtraOptions === 'custom' && (
+                <div className="bg-purple-50 rounded-2xl p-6 border border-purple-200">
+                  <h4 className="font-semibold text-gray-800 mb-3">Beschrijf je eigen casus</h4>
+                  <div className="space-y-4">
+                    <textarea
+                      value={customCaseInput}
+                      onChange={(e) => setCustomCaseInput(e.target.value)}
+                      placeholder="Beschrijf hier je eigen praktijkcasus. Geef voldoende context en details zodat de AI een goede analyse kan maken..."
+                      rows={6}
+                      className="w-full px-4 py-3 rounded-xl border border-purple-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all resize-none"
+                    />
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          if (customCaseInput.trim()) {
+                            handleExtraOption({ type: 'custom', data: customCaseInput.trim() });
+                            setCustomCaseInput('');
+                            setShowExtraOptions(false);
+                          }
+                        }}
+                        disabled={!customCaseInput.trim() || isProcessingExtra}
+                        className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isProcessingExtra ? 'Verwerken...' : 'Analyseer casus'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowExtraOptions(false);
+                          setCustomCaseInput('');
+                        }}
+                        className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+                      >
+                        Annuleren
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
             {/* Loading State */}
 
             {/* Back Button */}
