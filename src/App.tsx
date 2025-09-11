@@ -599,3 +599,7 @@ function App() {
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
           style={{
             backgroundImage: 'url(https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg)'
+          }
+          }
+  )
+}
