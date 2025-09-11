@@ -800,137 +800,115 @@ function App() {
             <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-                  <Lightbulb className="w-7 h-7 text-yellow-600" />
+                  <Brain className="w-7 h-7 text-purple-600" />
                   Ethisch Kompas
                 </h2>
                 <p className="text-gray-600">
                   Selecteer {requiredSelections} ethische dimensies die volgens jou het meest relevant zijn voor deze casus.
                 </p>
                 <div className="mt-2 flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-700">
+                  <div className="text-sm text-gray-500">
                     Geselecteerd: {selectedDimensions.length}/{requiredSelections}
-                  </span>
-                  {selectedDimensions.length === requiredSelections && (
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  </div>
+                  {selectedDimensions.length === requiredSelections && !showFeedback && (
+                    <button
+                      onClick={() => {
+                        if (!isMuted) playConfirmSound();
+                        setShowFeedback(true);
+                      }}
+                      className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2 text-sm"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                      Controleer Antwoord
+                    </button>
                   )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {ETHICAL_DIMENSIONS.map((dimension) => (
-                  <button
-                    key={dimension.id}
-                    onClick={() => toggleDimension(dimension.id)}
-                    disabled={showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)}
-                    className={`p-4 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
-                      selectedDimensions.includes(dimension.id)
-                        ? 'border-blue-500 bg-blue-50 shadow-lg'
-                        : showFeedback
-                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
-                        : !selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections
-                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
-                        : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-md group-hover:scale-110 transition-transform`}>
-                        <div className="w-3 h-3 bg-white rounded-full"></div>
+                {ETHICAL_DIMENSIONS.map((dimension) => {
+                  const isSelected = selectedDimensions.includes(dimension.id);
+                  const isCorrect = result?.correctDimensions.includes(dimension.id);
+                  const showResult = showFeedback;
+                  
+                  return (
+                    <button
+                      key={dimension.id}
+                      onClick={() => toggleDimension(dimension.id)}
+                      disabled={showFeedback || (!isSelected && selectedDimensions.length >= requiredSelections)}
+                      className={`p-4 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                        showResult
+                          ? isSelected && isCorrect
+                            ? 'border-green-500 bg-green-50 shadow-lg'
+                            : isSelected && !isCorrect
+                            ? 'border-red-500 bg-red-50 shadow-lg'
+                            : isCorrect
+                            ? 'border-yellow-500 bg-yellow-50 shadow-lg'
+                            : 'border-gray-200 bg-gray-100/50 opacity-50'
+                          : isSelected
+                          ? 'border-purple-500 bg-purple-50 shadow-lg'
+                          : (!isSelected && selectedDimensions.length >= requiredSelections)
+                          ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
+                          : 'border-gray-200 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                          <Brain className="w-5 h-5" />
+                        </div>
+                        {showResult ? (
+                          isSelected && isCorrect ? (
+                            <CheckCircle className="w-6 h-6 text-green-600" />
+                          ) : isSelected && !isCorrect ? (
+                            <AlertCircle className="w-6 h-6 text-red-600" />
+                          ) : isCorrect ? (
+                            <Lightbulb className="w-6 h-6 text-yellow-600" />
+                          ) : null
+                        ) : isSelected ? (
+                          <CheckCircle className="w-6 h-6 text-purple-600" />
+                        ) : null}
                       </div>
-                      {selectedDimensions.includes(dimension.id) && (
-                        <CheckCircle className="w-5 h-5 text-blue-600" />
-                      )}
-                    </div>
-                    <h3 className="font-semibold text-gray-800 mb-1 text-sm">{dimension.name}</h3>
-                    <p className="text-xs text-gray-600">{dimension.description}</p>
-                  </button>
-                ))}
+                      <h3 className="font-semibold text-gray-800 mb-2 text-sm">{dimension.name}</h3>
+                      <p className="text-xs text-gray-600">{dimension.description}</p>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Feedback Section */}
               {showFeedback && result && (
                 <div className="space-y-6">
-                  {/* Correct/Incorrect Feedback */}
                   <div className="bg-white/80 rounded-2xl p-6 border border-gray-200">
-                    <div className="flex items-center gap-3 mb-4">
-                      {selectedDimensions.length === result.correctDimensions.length &&
-                       selectedDimensions.every(dim => result.correctDimensions.includes(dim)) ? (
-                        <>
-                          <CheckCircle className="w-8 h-8 text-green-600" />
-                          <h3 className="text-xl font-bold text-green-700">Uitstekend!</h3>
-                        </>
-                      ) : (
-                        <>
-                          <AlertCircle className="w-8 h-8 text-orange-600" />
-                          <h3 className="text-xl font-bold text-orange-700">Bijna goed!</h3>
-                        </>
-                      )}
-                    </div>
-
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                      <Lightbulb className="w-6 h-6 text-yellow-600" />
+                      Uitleg van de Correcte Dimensies
+                    </h3>
                     <div className="space-y-4">
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">Jouw selectie:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedDimensions.map(dimId => {
-                            const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimId);
-                            const isCorrect = result.correctDimensions.includes(dimId);
-                            return (
-                              <span
-                                key={dimId}
-                                className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                  isCorrect
-                                    ? 'bg-green-100 text-green-800 border border-green-300'
-                                    : 'bg-red-100 text-red-800 border border-red-300'
-                                }`}
-                              >
-                                {dimension?.name}
-                                {isCorrect ? ' ✓' : ' ✗'}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold text-gray-800 mb-2">Correcte dimensies:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {result.correctDimensions.map(dimId => {
-                            const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimId);
-                            return (
-                              <span
-                                key={dimId}
-                                className="px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-300"
-                              >
-                                {dimension?.name}
-                              </span>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Explanations */}
-                      {result.explanations && result.explanations.length > 0 && (
-                        <div>
-                          <h4 className="font-semibold text-gray-800 mb-2">Uitleg:</h4>
-                          <div className="space-y-2">
-                            {result.explanations.map((explanation, index) => (
-                              <p key={index} className="text-gray-700 text-sm leading-relaxed">
-                                {explanation}
-                              </p>
-                            ))}
+                      {result.correctDimensions.map((dimensionId, index) => {
+                        const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
+                        const explanation = result.explanations[index];
+                        
+                        return (
+                          <div key={dimensionId} className="border-l-4 border-blue-500 pl-4">
+                            <h4 className="font-medium text-gray-800 mb-1">
+                              {dimension?.name}
+                            </h4>
+                            <p className="text-gray-600 text-sm">
+                              {explanation}
+                            </p>
                           </div>
-                        </div>
-                      )}
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex gap-4 justify-center">
+                  <div className="flex justify-center gap-4">
                     <button
                       onClick={retryDimensionSelection}
                       className="bg-gradient-to-r from-orange-500 to-yellow-400 hover:from-orange-600 hover:to-yellow-500 text-white px-6 py-3 rounded-xl shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"
                     >
                       <RotateCcw className="w-5 h-5" />
-                      Opnieuw proberen
+                      Probeer Opnieuw
                     </button>
                     
                     <button
@@ -945,28 +923,12 @@ function App() {
                         </>
                       ) : (
                         <>
-                          Ga verder
-                          <ChevronRight className="w-5 h-5" />
+                          <ArrowRight className="w-5 h-5" />
+                          Ga Verder naar Stakeholders
                         </>
                       )}
                     </button>
                   </div>
-                </div>
-              )}
-
-              {/* Check Answer Button */}
-              {!showFeedback && selectedDimensions.length === requiredSelections && (
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => {
-                      if (!isMuted) playConfirmSound();
-                      setShowFeedback(true);
-                    }}
-                    className="bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white px-8 py-4 rounded-2xl shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-3 text-lg font-semibold"
-                  >
-                    <UserCheck className="w-6 h-6" />
-                    Controleer Antwoord
-                  </button>
                 </div>
               )}
             </div>
@@ -996,7 +958,7 @@ function App() {
                 <div className="prose max-w-none">
                   <div className="bg-white/80 rounded-2xl p-6 border border-gray-200">
                     <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                      {result.expandedCase || result.case}
+                      {result.expandedCase || result.compactCase || result.case}
                     </p>
                   </div>
                 </div>
@@ -1004,16 +966,16 @@ function App() {
             </div>
 
             {/* Stakeholders */}
-            {result && result.stakeholders && result.stakeholders.length > 0 && (
-              <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-                    <Users className="w-7 h-7 text-green-600" />
-                    Stakeholder Perspectieven
-                  </h2>
-                  <p className="text-gray-600">Bekijk hoe verschillende stakeholders tegen deze casus aankijken.</p>
-                </div>
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <Users className="w-7 h-7 text-green-600" />
+                  Stakeholder Analyse
+                </h2>
+                <p className="text-gray-600">Belangrijke stakeholders en hun perspectieven in deze casus.</p>
+              </div>
 
+              {result && result.stakeholders && result.stakeholders.length > 0 && (
                 <div className="grid gap-6">
                   {result.stakeholders.map((stakeholder, index) => (
                     <div key={index} className="bg-white/80 rounded-2xl p-6 border border-gray-200">
@@ -1022,15 +984,15 @@ function App() {
                           <Users className="w-6 h-6" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-gray-800 mb-2">{stakeholder.role}</h3>
-                          <div className="space-y-3">
+                          <h3 className="font-semibold text-gray-800 mb-2">{stakeholder.role}</h3>
+                          <div className="space-y-2">
                             <div>
-                              <h4 className="font-semibold text-gray-700 mb-1">Belangen:</h4>
-                              <p className="text-gray-600 text-sm">{stakeholder.interests}</p>
+                              <span className="text-sm font-medium text-gray-600">Belangen:</span>
+                              <p className="text-sm text-gray-700">{stakeholder.interests}</p>
                             </div>
                             <div>
-                              <h4 className="font-semibold text-gray-700 mb-1">Perspectief:</h4>
-                              <p className="text-gray-600 text-sm">{stakeholder.perspective}</p>
+                              <span className="text-sm font-medium text-gray-600">Perspectief:</span>
+                              <p className="text-sm text-gray-700">{stakeholder.perspective}</p>
                             </div>
                           </div>
                         </div>
@@ -1038,18 +1000,17 @@ function App() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* New Case Button */}
-            <div className="flex justify-center">
-              <button
-                onClick={handleReset}
-                className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-8 py-4 rounded-2xl shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-3 text-lg font-semibold"
-              >
-                <Sparkles className="w-6 h-6" />
-                Nieuwe Casus Genereren
-              </button>
+              <div className="flex justify-center mt-8">
+                <button
+                  onClick={handleReset}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-8 py-4 rounded-2xl shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-3 text-lg font-semibold"
+                >
+                  <RotateCcw className="w-6 h-6" />
+                  Nieuwe Casus Genereren
+                </button>
+              </div>
             </div>
           </div>
         ) : null}
