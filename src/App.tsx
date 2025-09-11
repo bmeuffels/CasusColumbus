@@ -817,6 +817,20 @@ function App() {
                 </div>
               </div>
 
+              {/* Case Title */}
+              {selectedCaseTitle && (
+                <div className="mb-6 pb-6 border-b border-orange-200">
+                  <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                    {selectedCaseTitle.title}
+                  </h1>
+                  {selectedCaseTitle.description && (
+                    <p className="text-gray-600 italic">
+                      {selectedCaseTitle.description}
+                    </p>
+                  )}
+                </div>
+              )}
+              
               {/* Primary Cases - From Selected Topic */}
               <div className="mb-8">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
@@ -1243,7 +1257,7 @@ function App() {
                     )}
                     {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length >= Math.floor(requiredSelections * 0.6) && selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < requiredSelections && (
                       <span className="text-orange-600 font-medium"> Goed gedaan! 👍</span>
-                    )}
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Casus Beschrijving</h2>
                     {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < Math.floor(requiredSelections * 0.6) && (
                       <span className="text-red-600 font-medium"> Probeer de casus nog eens goed door te lezen. 🤔</span>
                     )}
