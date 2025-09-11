@@ -255,7 +255,7 @@ const TECH_TOPICS: TechTopic[] = [
   }
 ];
 
-function App() {
+export default function App() {
   const [selectedFields, setSelectedFields] = useState<string[]>([]);
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedDimensions, setSelectedDimensions] = useState<string[]>([]);
