@@ -65,6 +65,10 @@ interface EthicalDimension {
   color: string;
 }
 
+interface ExtraOption {
+  type: 'random' | 'url' | 'custom';
+  data?: string;
+}
 const ETHICAL_DIMENSIONS: EthicalDimension[] = [
   {
     id: 'relationships',
@@ -266,6 +270,10 @@ function App() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
   const [isMuted, setIsMuted] = useState(false);
+  const [showExtraOptions, setShowExtraOptions] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [customCaseInput, setCustomCaseInput] = useState('');
+  const [isProcessingExtra, setIsProcessingExtra] = useState(false);
 
   const toggleField = (fieldId: string) => {
     const wasSelected = selectedFields.includes(fieldId);
