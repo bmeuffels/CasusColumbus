@@ -654,4 +654,4 @@ function App() {
                   <Laptop className="w-7 h-7 text-indigo-600" />
                   Selecteer technologie onderwerp
                 </h2>
-                <p className="text-gray-600
+                <p className="text-gray-600">Kies het technologie onderwerp dat relevant is voor je casus.</p>
