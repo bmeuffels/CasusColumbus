@@ -1114,7 +1114,7 @@ function App() {
                   <FileText className="w-7 h-7 text-blue-600" />
                   Ethische Casus
                 </h2>
-                {selectedCaseTitle && currentPage !== 'titles' && (
+                {selectedCaseTitle && (currentPage === 'case' || currentPage === 'stakeholders') && (
                   <div className="mb-6 pb-4 border-b border-gray-200">
                     <h2 className="text-2xl font-semibold text-gray-700 mb-2">{selectedCaseTitle.title}</h2>
                     {selectedCaseTitle.description && (
@@ -1354,7 +1354,7 @@ function App() {
                     <FileText className="w-7 h-7 text-blue-600" />
                     Uitgebreide Casus Analyse
                   </h2>
-                  {selectedCaseTitle && currentPage !== 'titles' && (
+                  {selectedCaseTitle && (currentPage === 'case' || currentPage === 'stakeholders') && (
                     <div className="mb-6 pb-4 border-b border-gray-200">
                       <h2 className="text-2xl font-semibold text-gray-700 mb-2">{selectedCaseTitle.title}</h2>
                       {selectedCaseTitle.description && (
