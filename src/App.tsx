@@ -345,6 +345,69 @@ function App() {
     setShowFeedback(false);
   };
 
+  const handleExtraOption = async (option: ExtraOption) => {
+    if (!isMuted) playConfirmSound();
+    setIsProcessingExtra(true);
+
+    try {
+      if (option.type === 'random') {
+        // Select a random case from the generated titles
+        if (caseTitles.length > 0) {
+          const randomIndex = Math.floor(Math.random() * caseTitles.length);
+          const randomCase = caseTitles[randomIndex];
+          await generateCaseFromTitle(randomCase.title, randomCase.techTopic);
+        }
+      } else if (option.type === 'url' && option.data) {
+        // Process URL case
+        const response = await fetch('/api/process-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: option.data })
+        });
+        
+        if (response.ok) {
+          const urlResult = await response.json();
+          setResult(urlResult);
+          setRequiredSelections(urlResult.correctDimensions?.length || 3);
+          setCurrentPage('case');
+        } else {
+          throw new Error('Failed to process URL');
+        }
+      } else if (option.type === 'custom' && option.data) {
+        // Process custom case
+        const customCaseResult: CaseResult = {
+          case: option.data,
+          compactCase: option.data,
+          expandedCase: '',
+          correctDimensions: [],
+          explanations: [],
+          stakeholders: []
+        };
+        
+        setResult(customCaseResult);
+        setRequiredSelections(3); // Default for custom cases
+        setCurrentPage('case');
+      }
+    } catch (error) {
+      console.error('Error processing extra option:', error);
+      // Show error but don't block user
+      if (option.type === 'custom' && option.data) {
+        const errorCaseResult: CaseResult = {
+          case: option.data,
+          compactCase: option.data,
+          expandedCase: '',
+          correctDimensions: [],
+          explanations: [],
+          stakeholders: []
+        };
+        setResult(errorCaseResult);
+        setCurrentPage('case');
+      }
+    } finally {
+      setIsProcessingExtra(false);
+    }
+  };
+
   const generateCase = async () => {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
