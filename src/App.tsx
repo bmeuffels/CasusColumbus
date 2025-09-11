@@ -275,67 +275,6 @@ function App() {
   const [customCaseInput, setCustomCaseInput] = useState('');
   const [isProcessingExtra, setIsProcessingExtra] = useState(false);
 
-  const handleRandomCase = async () => {
-    if (!caseTitles || caseTitles.length === 0) return;
-    
-    try {
-      if (!isMuted) playSelectSound();
-      
-      // Select a random case from the generated titles
-      const randomIndex = Math.floor(Math.random() * caseTitles.length);
-      const randomCase = caseTitles[randomIndex];
-      
-      // Generate case using the random title
-      await generateCaseFromTitle(randomCase.title, randomCase.techTopic);
-    } catch (error) {
-      console.error('Error selecting random case:', error);
-    }
-  };
-
-  const handleExtraOption = async (option: ExtraOption) => {
-    if (option.type === 'random') {
-      await handleRandomCase();
-      return;
-    }
-
-    setIsProcessingExtra(true);
-    
-    try {
-      if (option.type === 'url' && option.data) {
-        // Process URL
-        const response = await fetch('/api/process-url', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: option.data })
-        });
-        
-        if (!response.ok) throw new Error('Failed to process URL');
-        
-        const result = await response.json();
-        await generateCaseFromTitle(result.title, result.techTopic || 'Algemeen');
-        
-      } else if (option.type === 'custom' && option.data) {
-        // Process custom case
-        const response = await fetch('/api/process-custom', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ customCase: option.data })
-        });
-        
-        if (!response.ok) throw new Error('Failed to process custom case');
-        
-        const result = await response.json();
-        await generateCaseFromTitle(result.title, result.techTopic || 'Algemeen');
-      }
-    } catch (error) {
-      console.error('Error processing extra option:', error);
-      // Fallback: generate a general case
-      await generateCaseFromTitle('Algemene ethische casus', 'Algemeen');
-    } finally {
-      setIsProcessingExtra(false);
-    }
-  };
-
   const toggleField = (fieldId: string) => {
     const wasSelected = selectedFields.includes(fieldId);
     setSelectedFields(prev => {
@@ -491,783 +430,937 @@ function App() {
       setResult({
         case: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
         compactCase: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
-        expandedCase: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
+        expandedCase: '',
         correctDimensions: [],
         explanations: [],
         stakeholders: []
       });
+      setCurrentPage('case');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 relative overflow-hidden">
-      {/* Background Image */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
-        style={{ backgroundImage: 'url(/Schutblad opening.jpg)' }}
-      />
+  const expandCase = async () => {
+    if (!result) return;
+
+    if (!isMuted) playNavigationSound();
+    setIsExpandingCase(true);
+
+    // Use correct dimensions instead of user selections
+    const correctDimensionNames = result.correctDimensions.map(id => 
+      ETHICAL_DIMENSIONS.find(d => d.id === id)?.name
+    ).filter(Boolean).join(', ');
+
+    try {
+      const response = await fetch('/api/expand-case', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          compactCase: result.compactCase,
+          selectedDimensions: correctDimensionNames.split(', ')
+        })
+      });
+
+      if (!response.ok) {
+        console.error(`API Error: ${response.status}`);
+        // Fallback: use original case and continue
+        setResult(prev => prev ? {
+          ...prev,
+          expandedCase: prev.compactCase || prev.case
+        } : null);
+        setCurrentPage('stakeholders');
+        return;
+      }
+
+      const expandedResult = await response.json();
       
-      {/* Content */}
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="bg-white/90 backdrop-blur-sm shadow-sm border-b border-blue-100">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+      if (expandedResult.expandedCase && expandedResult.expandedCase.trim()) {
+        setResult(prev => prev ? {
+          ...prev,
+          expandedCase: expandedResult.expandedCase
+        } : null);
+      } else {
+        // Fallback: use original case if expansion fails
+        console.warn('No expanded case received, using original case');
+        setResult(prev => prev ? {
+          ...prev,
+          expandedCase: prev.compactCase || prev.case
+        } : null);
+      }
+      
+      setCurrentPage('stakeholders');
+    } catch (error) {
+      console.error('Error expanding case:', error);
+      // Fallback: use original case and continue
+      setResult(prev => prev ? {
+        ...prev,
+        expandedCase: prev.compactCase || prev.case
+      } : null);
+      setCurrentPage('stakeholders');
+    } finally {
+      setIsExpandingCase(false);
+    }
+  };
+
+  const resetForm = () => {
+    setSelectedFields([]);
+    setSelectedTopics([]);
+    setSelectedDimensions([]);
+    setCaseTitles([]);
+    setSelectedCaseTitle(null);
+    setResult(null);
+    setShowFeedback(false);
+    setRequiredSelections(3);
+    setCurrentPage('selection');
+  };
+
+  const handleReset = () => {
+    if (!isMuted) playNavigationSound();
+    resetForm();
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  return (
+    <div className="min-h-screen">
+      {/* Background Elements */}
+      <div className="absolute inset-0 z-0">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
+          style={{
+            backgroundImage: 'url(https://ucb5ea564f8e92f3121e32939587.previews.dropboxusercontent.com/p/thumb/ACta83wQsHX0ZB7jyXRqlMaKWLHo439GXjcgXp7cnNmimOpqQ77W8aF2HbCDe34W9EzK3Wnb_XrMEWpHZYG_o4vWix6kaqN4WmlcLFNuz7pcgAMVq_uK5m9aEeZAFuGksDDCnASyuIBh8LF0_9LvY9dm423h1uqpjL_qqAlkexTRLGRG4tEApkVG4DklvLW5kjoeN4hRHzzG2Zs7eUCZMvgocTNraYpjOr-aIVnMEZEl1ikDioSOqGhKDqekt97dFYShwqp-upiBDrMYGMeWp8H1GQNnADDQuky7HJqmMU2KHFn2BnyZf9DnCUJzemGPryrtzWAZSiD0eVOqoxChqUKzGrpruPRoLDKyp8EFSMu5_REA-46_E3wIbwjtiOW9jn6_avlsDaPpQe8SQDKVdTzi51yT0g9Qs78ZeOLkYSUEMbA401iSmKlvBH7mKYxQJo8B6bwLse9EewH7ZR0ePFCF--VbXnreGGvBvpG-U-9G0hiDnyGfFv-l77eYM0Zl8IuJZOtuSuULDHguqn2tPpIxPKCUl5xLGw182hwlB51n6ScVtqZDt5LYQvF-QJux2emlzSFD7WGecBkJ6pdE2zZO/p.jpeg)'
+          }}
+        />
+        {/* Gradient Overlay */}
+        {/* Animated Elements */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+
+      {/* Header */}
+      <header className="relative z-50 backdrop-blur-xl bg-white/80 border-b border-blue-200/50 shadow-lg">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-lg">
                 <img 
-                  src="/logo zonder ondertitel.svg" 
-                  alt="Logo" 
-                  className="h-12 w-auto"
+                  src="/logo zonder ondertitel.svg"
+                  alt="Casus Columbus Logo"
+                  className="w-full h-full object-cover"
                 />
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Ethiek Kompas</h1>
-                  <p className="text-sm text-gray-600">Navigeer door ethische dilemma's in technologie</p>
-                </div>
               </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                  Casus Columbus
+                </h1>
+                <p className="text-gray-600 text-sm flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-blue-400" />
+                  Ethiek & Technologie Casus Generator voor professionals
+                </p>
+              </div>
+            </div>
+            
+            {/* Header Buttons */}
+            <div className="flex items-center space-x-3">
+              {/* Opnieuw Button - Only when selections made */}
+              {(selectedFields.length > 0 || selectedTopics.length > 0) && (
+                <button
+                  onClick={handleReset}
+                  className="bg-gradient-to-r from-orange-500 to-yellow-400 hover:from-orange-600 hover:to-yellow-500 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 flex items-center gap-2"
+                  title="Opnieuw beginnen"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Opnieuw
+                </button>
+              )}
               
-              {/* Sound Toggle */}
+              {/* Mute Button - Always visible */}
               <button
                 onClick={() => setIsMuted(!isMuted)}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                className={`w-10 h-10 rounded-lg shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center ${
+                  isMuted 
+                    ? 'bg-gray-500 hover:bg-gray-600' 
+                    : 'bg-gradient-to-r from-orange-500 to-yellow-400 hover:from-orange-600 hover:to-yellow-500'
+                }`}
                 title={isMuted ? "Geluid aanzetten" : "Geluid uitzetten"}
               >
                 {isMuted ? (
-                  <VolumeX className="w-5 h-5 text-gray-600" />
+                  <VolumeX className="w-5 h-5 text-white" />
                 ) : (
-                  <Volume2 className="w-5 h-5 text-gray-600" />
+                  <Volume2 className="w-5 h-5 text-white" />
                 )}
               </button>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {currentPage === 'selection' && (
-            <div className="space-y-12">
-              {/* Hero Section */}
-              <div className="text-center space-y-6">
-                <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Interactieve Ethiek Training</span>
-                </div>
-                <h2 className="text-4xl font-bold text-gray-900 sm:text-5xl">
-                  Ontdek Ethische Dilemma's in
-                  <span className="text-blue-600 block">Jouw Werkveld</span>
+      <main className="max-w-7xl mx-auto px-6 py-8 relative z-10">
+        {currentPage === 'selection' ? (
+          <div className="space-y-8">
+            {/* Work Fields Selection */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <Users className="w-7 h-7 text-blue-600" />
+                  Selecteer je vakgebied(en)
                 </h2>
-                <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                  Maak bewuste keuzes en leer navigeren door complexe ethische vraagstukken 
-                  in de moderne technologie-gedreven wereld.
-                </p>
+                <p className="text-gray-600">Kies maximaal twee vakgebieden die relevant zijn voor je organisatie.</p>
               </div>
-
-              {/* Work Fields Selection */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    Kies je werkveld
-                  </h3>
-                  <p className="text-gray-600">
-                    Selecteer maximaal 2 werkvelden die het beste bij jouw situatie passen
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {WORK_FIELDS.map((field) => (
-                    <button
-                      key={field.id}
-                      onClick={() => toggleField(field.id)}
-                      disabled={!selectedFields.includes(field.id) && selectedFields.length >= 2}
-                      className={`
-                        p-6 rounded-xl border-2 transition-all duration-200 text-left
-                        ${selectedFields.includes(field.id)
-                          ? `bg-gradient-to-r ${field.color} text-white border-transparent shadow-lg transform scale-105`
-                          : selectedFields.length >= 2
-                          ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md hover:scale-102'
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {WORK_FIELDS.map((field) => (
+                  <button
+                    key={field.id}
+                    onClick={() => {
+                      const wasSelected = selectedFields.includes(field.id);
+                      handleFieldToggle(field.id);
+                      
+                      // Play appropriate sound based on current state
+                      setTimeout(() => {
+                        if (wasSelected) {
+                          if (!isMuted) playDeselectSound(); // Was selected, now deselected
+                        } else {
+                          if (!isMuted) playSelectSound(); // Was not selected, now selected
                         }
-                      `}
-                    >
-                      <div className="flex items-start space-x-4">
-                        <div className={`
-                          p-2 rounded-lg
-                          ${selectedFields.includes(field.id)
-                            ? 'bg-white/20'
-                            : 'bg-gray-100'
-                          }
-                        `}>
-                          {field.icon}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-lg mb-2">{field.name}</h4>
-                          <p className={`text-sm ${
-                            selectedFields.includes(field.id) ? 'text-white/80' : 'text-gray-600'
-                          }`}>
-                            {field.description}
-                          </p>
-                        </div>
-                        {selectedFields.includes(field.id) && (
-                          <CheckCircle className="w-6 h-6 text-white" />
-                        )}
+                      }, 0);
+                    }}
+                    disabled={!selectedFields.includes(field.id) && selectedFields.length >= 2}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                      selectedFields.includes(field.id)
+                        ? 'border-blue-500 bg-blue-50 shadow-lg'
+                        : !selectedFields.includes(field.id) && selectedFields.length >= 2
+                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
+                        : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${field.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                        {field.icon}
                       </div>
-                    </button>
-                  ))}
-                </div>
+                      {selectedFields.includes(field.id) && (
+                        <CheckCircle className="w-6 h-6 text-blue-600" />
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">{field.name}</h3>
+                    <p className="text-sm text-gray-600">{field.description}</p>
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* Tech Topics Selection */}
-              <div className="space-y-6">
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    Kies een technologie onderwerp
-                  </h3>
-                  <p className="text-gray-600">
-                    Selecteer het technologie onderwerp dat je wilt verkennen
-                  </p>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {TECH_TOPICS.map((topic) => (
-                    <button
-                      key={topic.id}
-                      onClick={() => toggleTopic(topic.id)}
-                      className={`
-                        p-6 rounded-xl border-2 transition-all duration-200 text-left
-                        ${selectedTopics.includes(topic.id)
-                          ? `bg-gradient-to-r ${topic.color} text-white border-transparent shadow-lg transform scale-105`
-                          : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md hover:scale-102'
-                        }
-                      `}
-                    >
-                      <div className="flex items-start space-x-4">
-                        <div className={`
-                          p-2 rounded-lg
-                          ${selectedTopics.includes(topic.id)
-                            ? 'bg-white/20'
-                            : 'bg-gray-100'
-                          }
-                        `}>
-                          {topic.icon}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-lg mb-2">{topic.name}</h4>
-                          <p className={`text-sm ${
-                            selectedTopics.includes(topic.id) ? 'text-white/80' : 'text-gray-600'
-                          }`}>
-                            {topic.description}
-                          </p>
-                        </div>
-                        {selectedTopics.includes(topic.id) && (
-                          <CheckCircle className="w-6 h-6 text-white" />
-                        )}
+            {/* Technology Topics Selection */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <Laptop className="w-7 h-7 text-indigo-600" />
+                  Selecteer technologie onderwerp
+                </h2>
+                <p className="text-gray-600">Kies één technologisch thema voor je ethische casus.</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {TECH_TOPICS.map((topic) => (
+                  <button
+                    key={topic.id}
+                    onClick={() => toggleTopic(topic.id)}
+                    disabled={!selectedTopics.includes(topic.id) && selectedTopics.length >= 1}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                      selectedTopics.includes(topic.id)
+                        ? 'border-indigo-500 bg-indigo-50 shadow-lg'
+                        : !selectedTopics.includes(topic.id) && selectedTopics.length >= 1
+                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
+                        : 'border-gray-200 bg-white/80 hover:border-indigo-300 hover:bg-indigo-50/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${topic.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                        {topic.icon}
                       </div>
-                    </button>
-                  ))}
-                </div>
+                      {selectedTopics.includes(topic.id) && (
+                        <CheckCircle className="w-6 h-6 text-indigo-600" />
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2">{topic.name}</h3>
+                    <p className="text-sm text-gray-600">{topic.description}</p>
+                  </button>
+                ))}
               </div>
+            </div>
 
-              {/* Generate Button */}
+            {/* Generate Button */}
+            {selectedFields.length > 0 && selectedTopics.length === 1 && (
               <div className="text-center">
                 <button
                   onClick={generateCase}
-                  disabled={selectedFields.length === 0 || selectedTopics.length === 0 || isGeneratingTitles}
-                  className={`
-                    inline-flex items-center space-x-3 px-8 py-4 rounded-xl text-lg font-semibold
-                    transition-all duration-200 transform
-                    ${selectedFields.length > 0 && selectedTopics.length > 0 && !isGeneratingTitles
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:scale-105 shadow-lg hover:shadow-xl'
-                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }
-                  `}
+                  disabled={isGeneratingTitles}
+                  className={`inline-flex items-center space-x-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                    isGeneratingTitles
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-200'
+                  }`}
                 >
                   {isGeneratingTitles ? (
                     <>
-                      <RotateCcw className="w-6 h-6 animate-spin" />
-                      <span>Casussen genereren...</span>
+                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Casus opties worden geladen...</span>
                     </>
                   ) : (
                     <>
-                      <Lightbulb className="w-6 h-6" />
-                      <span>Genereer Ethische Casussen</span>
-                      <ChevronRight className="w-6 h-6" />
+                      <Sparkles className="w-6 h-6" />
+                      <span>Toon Casus Opties</span>
+                      <ArrowRight className="w-6 h-6" />
                     </>
                   )}
                 </button>
               </div>
-            </div>
-          )}
-
-          {currentPage === 'titles' && (
-            <div className="space-y-8">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => {
-                    if (!isMuted) playNavigationSound();
-                    setCurrentPage('selection');
-                  }}
-                  className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  <span>Terug naar selectie</span>
-                </button>
-                
-                <div className="text-center">
-                  <h2 className="text-3xl font-bold text-gray-900">Kies je Casus</h2>
-                  <p className="text-gray-600 mt-2">Selecteer een ethisch dilemma om te verkennen</p>
+            )}
+          </div>
+        ) : null}
+        
+        {currentPage === 'titles' && (
+          <div className="space-y-8">
+            {/* Case Titles Selection */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <FileText className="w-7 h-7 text-blue-600" />
+                  Kies je Casus
+                </h2>
+                <p className="text-gray-600">Selecteer een casus die je interessant lijkt voor verdere uitwerking.</p>
+                <div className="flex flex-wrap gap-2 mt-4">
+                  {selectedFields.map(fieldId => {
+                    const field = WORK_FIELDS.find(f => f.id === fieldId);
+                    return field ? (
+                      <span key={fieldId} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {field.name}
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedTopics.map(topicId => {
+                    const topic = TECH_TOPICS.find(t => t.id === topicId);
+                    return topic ? (
+                      <span key={topicId} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                        {topic.name}
+                      </span>
+                    ) : null;
+                  })}
                 </div>
-                
-                <div className="w-32"></div> {/* Spacer for centering */}
               </div>
 
-              {/* Case Titles from Selected Topics */}
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-gray-800 flex items-center space-x-2">
-                  <Lightbulb className="w-6 h-6 text-blue-600" />
-                  <span>Casussen uit jouw gekozen onderwerp</span>
+              {/* Primary Cases - From Selected Topic */}
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-indigo-600" />
+                  Casussen uit jouw gekozen onderwerp
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {caseTitles.slice(0, 6).map((caseTitle, index) => (
                     <button
                       key={index}
                       onClick={() => {
-                        if (!isMuted) playSelectSound();
-                        setSelectedCaseTitle({ ...caseTitle, index });
-                        generateCaseFromTitle(caseTitle.title, caseTitle.techTopic);
+                        const wasSelected = selectedCaseTitle?.index === index;
+                        if (wasSelected) {
+                          if (!isMuted) playDeselectSound();
+                          setSelectedCaseTitle(null);
+                        } else {
+                          if (!isMuted) playSelectSound();
+                          setSelectedCaseTitle({ ...caseTitle, index });
+                        }
                       }}
-                      className="p-6 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 text-left group"
+                      className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                        selectedCaseTitle?.index === index
+                          ? 'border-blue-500 bg-blue-50 shadow-lg'
+                          : 'border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50'
+                      }`}
                     >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                            {caseTitle.techTopic}
-                          </span>
-                          <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                          <FileText className="w-6 h-6" />
                         </div>
-                        <h4 className="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors">
-                          {caseTitle.title}
-                        </h4>
-                        <p className="text-sm text-gray-600 line-clamp-3">
-                          {caseTitle.description}
-                        </p>
+                        {selectedCaseTitle?.index === index && (
+                          <CheckCircle className="w-6 h-6 text-blue-600" />
+                        )}
+                        <span className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">
+                          {caseTitle.techTopic}
+                        </span>
                       </div>
+                      <h3 className="font-semibold text-gray-800 mb-2">{caseTitle.title}</h3>
+                      <p className="text-sm text-gray-600">{caseTitle.description}</p>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* Surprising Cases from Other Topics */}
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-gray-800 flex items-center space-x-2">
-                  <Sparkles className="w-6 h-6 text-purple-600" />
-                  <span>Verrassende casussen uit andere onderwerpen</span>
+              {/* Alternative Cases - From Other Topics */}
+              <div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-emerald-600" />
+                  Verrassende casussen uit andere onderwerpen
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {caseTitles.slice(6, 12).map((caseTitle, index) => (
                     <button
                       key={index + 6}
                       onClick={() => {
-                        if (!isMuted) playSelectSound();
-                        setSelectedCaseTitle({ ...caseTitle, index: index + 6 });
-                        generateCaseFromTitle(caseTitle.title, caseTitle.techTopic);
+                        const wasSelected = selectedCaseTitle?.index === index + 6;
+                        if (wasSelected) {
+                          if (!isMuted) playDeselectSound();
+                          setSelectedCaseTitle(null);
+                        } else {
+                          if (!isMuted) playSelectSound();
+                          setSelectedCaseTitle({ ...caseTitle, index: index + 6 });
+                        }
                       }}
-                      className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200 hover:border-purple-300 hover:shadow-lg transition-all duration-200 text-left group"
+                      className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                        selectedCaseTitle?.index === index + 6
+                          ? 'border-emerald-500 bg-emerald-50 shadow-lg'
+                          : 'border-gray-200 bg-white/80 hover:border-emerald-300 hover:bg-emerald-50/50'
+                      }`}
                     >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between">
-                          <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                            {caseTitle.techTopic}
-                          </span>
-                          <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                          <FileText className="w-6 h-6" />
                         </div>
-                        <h4 className="font-semibold text-gray-900 group-hover:text-purple-900 transition-colors">
-                          {caseTitle.title}
-                        </h4>
-                        <p className="text-sm text-gray-600 line-clamp-3">
-                          {caseTitle.description}
-                        </p>
+                        {selectedCaseTitle?.index === index + 6 && (
+                          <CheckCircle className="w-6 h-6 text-emerald-600" />
+                        )}
+                        <span className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium">
+                          {caseTitle.techTopic}
+                        </span>
                       </div>
+                      <h3 className="font-semibold text-gray-800 mb-2">{caseTitle.title}</h3>
+                      <p className="text-sm text-gray-600">{caseTitle.description}</p>
                     </button>
                   ))}
                 </div>
-              </div>
-
-              {/* Extra Options */}
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold text-gray-800 flex items-center space-x-2">
-                  <Users className="w-6 h-6 text-green-600" />
-                  <span>Extra mogelijkheden</span>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Random Case Button */}
-                  <button
-                    onClick={handleRandomCase}
-                    disabled={!caseTitles || caseTitles.length === 0}
-                    className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200 hover:border-green-300 hover:shadow-lg transition-all duration-200 text-left group disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <RefreshCw className="w-8 h-8 text-green-600" />
-                        <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors" />
-                      </div>
-                      <h4 className="font-semibold text-gray-900 group-hover:text-green-900 transition-colors">
-                        Kies een willekeurige casus
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        Laat het systeem een casus voor je kiezen uit de gegenereerde opties
-                      </p>
-                    </div>
-                  </button>
-
-                  {/* URL Case Button */}
-                  <button
-                    onClick={() => setShowExtraOptions(showExtraOptions === 'url' ? false : 'url')}
-                    className="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200 hover:border-blue-300 hover:shadow-lg transition-all duration-200 text-left group"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Globe className="w-8 h-8 text-blue-600" />
-                        <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                      </div>
-                      <h4 className="font-semibold text-gray-900 group-hover:text-blue-900 transition-colors">
-                        Casus uit de actualiteit
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        Voer een URL in van een nieuwsartikel om een relevante casus te genereren
-                      </p>
-                    </div>
-                  </button>
-
-                  {/* Custom Case Button */}
-                  <button
-                    onClick={() => setShowExtraOptions(showExtraOptions === 'custom' ? false : 'custom')}
-                    className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 rounded-xl border border-orange-200 hover:border-orange-300 hover:shadow-lg transition-all duration-200 text-left group"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <FileText className="w-8 h-8 text-orange-600" />
-                        <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-orange-600 transition-colors" />
-                      </div>
-                      <h4 className="font-semibold text-gray-900 group-hover:text-orange-900 transition-colors">
-                        Beschrijf zelf een casus
-                      </h4>
-                      <p className="text-sm text-gray-600">
-                        Beschrijf je eigen praktijkcasus om een ethische analyse te krijgen
-                      </p>
-                    </div>
-                  </button>
-                </div>
-
-                {/* URL Input Form */}
-                {showExtraOptions === 'url' && (
-                  <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
-                    <h4 className="font-semibold text-gray-900 mb-4">Voer een URL in</h4>
-                    <div className="space-y-4">
-                      <input
-                        type="url"
-                        value={urlInput}
-                        onChange={(e) => setUrlInput(e.target.value)}
-                        placeholder="https://example.com/nieuwsartikel"
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => handleExtraOption({ type: 'url', data: urlInput })}
-                          disabled={!urlInput.trim() || isProcessingExtra}
-                          className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {isProcessingExtra ? 'Verwerken...' : 'Genereer Casus'}
-                        </button>
-                        <button
-                          onClick={() => setShowExtraOptions(false)}
-                          className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          Annuleren
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Custom Case Input Form */}
-                {showExtraOptions === 'custom' && (
-                  <div className="bg-orange-50 p-6 rounded-xl border border-orange-200">
-                    <h4 className="font-semibold text-gray-900 mb-4">Beschrijf je eigen casus</h4>
-                    <div className="space-y-4">
-                      <textarea
-                        value={customCaseInput}
-                        onChange={(e) => setCustomCaseInput(e.target.value)}
-                        placeholder="Beschrijf hier je eigen praktijkcasus. Bijvoorbeeld: 'In ons bedrijf willen we AI gebruiken voor het screenen van sollicitatiebrieven, maar we maken ons zorgen over mogelijke discriminatie...'"
-                        rows={6}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent resize-none"
-                      />
-                      <div className="flex space-x-3">
-                        <button
-                          onClick={() => handleExtraOption({ type: 'custom', data: customCaseInput })}
-                          disabled={!customCaseInput.trim() || isProcessingExtra}
-                          className="flex-1 bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                          {isProcessingExtra ? 'Verwerken...' : 'Genereer Casus'}
-                        </button>
-                        <button
-                          onClick={() => setShowExtraOptions(false)}
-                          className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          Annuleren
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
-          )}
 
-          {currentPage === 'case' && result && (
-            <div className="space-y-8">
-              {/* Header */}
-              <div className="flex items-center justify-between">
+            {/* Extra Options Section */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-amber-600" />
+                  Andere mogelijkheden
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Wil je een andere aanpak? Kies uit deze alternatieve opties.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* Random Case Button */}
                 <button
-                  onClick={() => {
-                    if (!isMuted) playNavigationSound();
-                    setCurrentPage('titles');
-                  }}
-                  className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium"
+                  onClick={() => handleExtraOption({ type: 'random' })}
+                  disabled={isProcessingExtra || caseTitles.length === 0}
+                  className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-amber-300 hover:bg-amber-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ArrowLeft className="w-5 h-5" />
-                  <span>Terug naar casussen</span>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <RefreshCw className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">Kies een willekeurige casus</h3>
+                  <p className="text-sm text-gray-600">Laat het toeval beslissen uit de gegenereerde opties</p>
                 </button>
-                
-                <div className="text-center">
-                  <h2 className="text-3xl font-bold text-gray-900">Ethische Casus</h2>
-                  <p className="text-gray-600 mt-2">Analyseer het dilemma en maak je keuzes</p>
-                </div>
-                
-                <div className="w-32"></div>
-              </div>
 
-              {/* Case Content */}
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                <div className="p-8">
-                  <div className="prose prose-lg max-w-none">
-                    <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
-                      {result.case}
+                {/* URL Case Button */}
+                <button
+                  onClick={() => setShowExtraOptions(showExtraOptions === false ? 'url' : false)}
+                  disabled={isProcessingExtra}
+                  className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <Globe className="w-6 h-6" />
                     </div>
                   </div>
-                  
-                  {/* Expand Case Button */}
-                  {result.expandedCase && result.expandedCase !== result.case && (
-                    <div className="mt-6 pt-6 border-t border-gray-200">
-                      <button
-                        onClick={async () => {
-                          if (!isMuted) playSelectSound();
-                          setIsExpandingCase(true);
-                          
-                          try {
-                            const response = await fetch('/api/expand-case', {
-                              method: 'POST',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                originalCase: result.case,
-                                expandedCase: result.expandedCase
-                              })
-                            });
-                            
-                            if (response.ok) {
-                              const expandedResult = await response.json();
-                              setResult(prev => prev ? { ...prev, case: expandedResult.expandedCase } : null);
-                            }
-                          } catch (error) {
-                            console.error('Error expanding case:', error);
-                            // Fallback: use the pre-generated expanded case
-                            setResult(prev => prev ? { ...prev, case: result.expandedCase } : null);
-                          } finally {
-                            setIsExpandingCase(false);
-                          }
-                        }}
-                        disabled={isExpandingCase}
-                        className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50"
-                      >
-                        {isExpandingCase ? (
-                          <>
-                            <RotateCcw className="w-4 h-4 animate-spin" />
-                            <span>Uitbreiden...</span>
-                          </>
-                        ) : (
-                          <>
-                            <ArrowRight className="w-4 h-4" />
-                            <span>Meer details tonen</span>
-                          </>
-                        )}
-                      </button>
+                  <h3 className="font-semibold text-gray-800 mb-2">Casus uit de actualiteit</h3>
+                  <p className="text-sm text-gray-600">Voer een nieuwsartikel URL in voor een actuele casus</p>
+                </button>
+
+                {/* Custom Case Button */}
+                <button
+                  onClick={() => setShowExtraOptions(showExtraOptions === false ? 'custom' : false)}
+                  disabled={isProcessingExtra}
+                  className="p-6 rounded-2xl border-2 border-gray-200 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50 transition-all duration-300 text-left group hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg group-hover:scale-110 transition-transform">
+                      <FileText className="w-6 h-6" />
                     </div>
-                  )}
-                </div>
+                  </div>
+                  <h3 className="font-semibold text-gray-800 mb-2">Beschrijf zelf een casus</h3>
+                  <p className="text-sm text-gray-600">Voer je eigen praktijkcasus in voor analyse</p>
+                </button>
               </div>
 
-              {/* Ethical Compass */}
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">Ethiek Kompas</h3>
-                  <p className="text-gray-600">
-                    Selecteer {requiredSelections} ethische dimensies die het meest relevant zijn voor deze casus
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                  {ETHICAL_DIMENSIONS.map((dimension) => (
-                    <button
-                      key={dimension.id}
-                      onClick={() => toggleDimension(dimension.id)}
-                      disabled={showFeedback}
-                      className={`
-                        p-4 rounded-lg border-2 transition-all duration-200 text-left
-                        ${selectedDimensions.includes(dimension.id)
-                          ? `bg-gradient-to-r ${dimension.color} text-white border-transparent shadow-lg`
-                          : showFeedback
-                          ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
-                          : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-md'
-                        }
-                      `}
-                    >
-                      <h4 className="font-semibold mb-2">{dimension.name}</h4>
-                      <p className={`text-sm ${
-                        selectedDimensions.includes(dimension.id) ? 'text-white/80' : 'text-gray-600'
-                      }`}>
-                        {dimension.description}
-                      </p>
-                      {selectedDimensions.includes(dimension.id) && (
-                        <CheckCircle className="w-5 h-5 text-white mt-2" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Submit Button */}
-                {!showFeedback && (
-                  <div className="text-center">
-                    <button
-                      onClick={() => {
-                        if (!isMuted) playConfirmSound();
-                        setShowFeedback(true);
-                      }}
-                      disabled={selectedDimensions.length !== requiredSelections}
-                      className={`
-                        inline-flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-all duration-200
-                        ${selectedDimensions.length === requiredSelections
-                          ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg hover:shadow-xl'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }
-                      `}
-                    >
-                      <UserCheck className="w-5 h-5" />
-                      <span>Controleer mijn keuzes</span>
-                    </button>
-                  </div>
-                )}
-
-                {/* Feedback */}
-                {showFeedback && (
-                  <div className="space-y-6">
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                      <h4 className="font-semibold text-blue-900 mb-4 flex items-center space-x-2">
-                        <Lightbulb className="w-5 h-5" />
-                        <span>Jouw analyse</span>
-                      </h4>
-                      
-                      {/* Correct selections */}
-                      <div className="space-y-3 mb-6">
-                        {selectedDimensions.map((dimensionId, index) => {
-                          const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
-                          const isCorrect = result.correctDimensions.includes(dimensionId);
-                          const explanationIndex = result.correctDimensions.indexOf(dimensionId);
-                          
-                          return (
-                            <div key={dimensionId} className={`
-                              p-4 rounded-lg border-2 ${
-                                isCorrect 
-                                  ? 'bg-green-50 border-green-200' 
-                                  : 'bg-red-50 border-red-200'
-                              }
-                            `}>
-                              <div className="flex items-start space-x-3">
-                                {isCorrect ? (
-                                  <CheckCircle className="w-6 h-6 text-green-600 mt-0.5" />
-                                ) : (
-                                  <AlertCircle className="w-6 h-6 text-red-600 mt-0.5" />
-                                )}
-                                <div className="flex-1">
-                                  <h5 className={`font-semibold ${
-                                    isCorrect ? 'text-green-900' : 'text-red-900'
-                                  }`}>
-                                    {dimension?.name}
-                                  </h5>
-                                  {isCorrect && explanationIndex >= 0 && result.explanations[explanationIndex] && (
-                                    <p className="text-green-800 text-sm mt-2">
-                                      {result.explanations[explanationIndex]}
-                                    </p>
-                                  )}
-                                  {!isCorrect && (
-                                    <p className="text-red-800 text-sm mt-2">
-                                      Deze dimensie is minder relevant voor deze specifieke casus.
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Missed important dimensions */}
-                      {result.correctDimensions.some(id => !selectedDimensions.includes(id)) && (
-                        <div className="mb-6">
-                          <h5 className="font-semibold text-orange-900 mb-3">Gemiste belangrijke dimensies:</h5>
-                          <div className="space-y-3">
-                            {result.correctDimensions
-                              .filter(id => !selectedDimensions.includes(id))
-                              .map((dimensionId, index) => {
-                                const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
-                                const explanationIndex = result.correctDimensions.indexOf(dimensionId);
-                                
-                                return (
-                                  <div key={dimensionId} className="p-4 bg-orange-50 border-2 border-orange-200 rounded-lg">
-                                    <div className="flex items-start space-x-3">
-                                      <AlertCircle className="w-6 h-6 text-orange-600 mt-0.5" />
-                                      <div className="flex-1">
-                                        <h6 className="font-semibold text-orange-900">{dimension?.name}</h6>
-                                        {explanationIndex >= 0 && result.explanations[explanationIndex] && (
-                                          <p className="text-orange-800 text-sm mt-2">
-                                            {result.explanations[explanationIndex]}
-                                          </p>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <button
-                        onClick={retryDimensionSelection}
-                        className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        <RefreshCw className="w-5 h-5" />
-                        <span>Probeer opnieuw</span>
-                      </button>
-                      
+              {/* URL Input Form */}
+              {showExtraOptions === 'url' && (
+                <div className="bg-blue-50 rounded-2xl p-6 border border-blue-200">
+                  <h4 className="font-semibold text-gray-800 mb-3">Voer een nieuwsartikel URL in</h4>
+                  <div className="space-y-4">
+                    <input
+                      type="url"
+                      value={urlInput}
+                      onChange={(e) => setUrlInput(e.target.value)}
+                      placeholder="https://www.example.com/nieuwsartikel"
+                      className="w-full px-4 py-3 rounded-xl border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all"
+                    />
+                    <div className="flex gap-3">
                       <button
                         onClick={() => {
-                          if (!isMuted) playNavigationSound();
-                          setCurrentPage('stakeholders');
+                          if (urlInput.trim()) {
+                            handleExtraOption({ type: 'url', data: urlInput.trim() });
+                            setUrlInput('');
+                            setShowExtraOptions(false);
+                          }
                         }}
-                        className="inline-flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        disabled={!urlInput.trim() || isProcessingExtra}
+                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        <Users className="w-5 h-5" />
-                        <span>Bekijk stakeholders</span>
-                        <ChevronRight className="w-5 h-5" />
+                        {isProcessingExtra ? 'Verwerken...' : 'Analyseer artikel'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowExtraOptions(false);
+                          setUrlInput('');
+                        }}
+                        className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+                      >
+                        Annuleren
                       </button>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {currentPage === 'stakeholders' && result && (
-            <div className="space-y-8">
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => {
-                    if (!isMuted) playNavigationSound();
-                    setCurrentPage('case');
-                  }}
-                  className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                  <span>Terug naar casus</span>
-                </button>
-                
-                <div className="text-center">
-                  <h2 className="text-3xl font-bold text-gray-900">Stakeholder Analyse</h2>
-                  <p className="text-gray-600 mt-2">Begrijp alle betrokken partijen en hun perspectieven</p>
                 </div>
-                
-                <button
-                  onClick={() => {
-                    if (!isMuted) playNavigationSound();
-                    setCurrentPage('selection');
-                    setResult(null);
-                    setSelectedFields([]);
-                    setSelectedTopics([]);
-                    setSelectedDimensions([]);
-                    setShowFeedback(false);
-                    setCaseTitles([]);
-                  }}
-                  className="inline-flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  <RefreshCw className="w-5 h-5" />
-                  <span>Nieuwe casus</span>
-                </button>
-              </div>
+              )}
 
-              {/* Stakeholders Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {result.stakeholders.map((stakeholder, index) => (
-                  <div key={index} className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
-                          <Users className="w-6 h-6 text-white" />
-                        </div>
-                        <h3 className="text-xl font-bold text-gray-900">{stakeholder.role}</h3>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-semibold text-gray-700 mb-1">Belangen:</h4>
-                          <p className="text-gray-600 text-sm">{stakeholder.interests}</p>
-                        </div>
-                        
-                        <div>
-                          <h4 className="font-semibold text-gray-700 mb-1">Perspectief:</h4>
-                          <p className="text-gray-600 text-sm">{stakeholder.perspective}</p>
-                        </div>
-                      </div>
+              {/* Custom Case Input Form */}
+              {showExtraOptions === 'custom' && (
+                <div className="bg-purple-50 rounded-2xl p-6 border border-purple-200">
+                  <h4 className="font-semibold text-gray-800 mb-3">Beschrijf je eigen casus</h4>
+                  <div className="space-y-4">
+                    <textarea
+                      value={customCaseInput}
+                      onChange={(e) => setCustomCaseInput(e.target.value)}
+                      placeholder="Beschrijf hier je eigen praktijkcasus. Geef voldoende context en details zodat de AI een goede analyse kan maken..."
+                      rows={6}
+                      className="w-full px-4 py-3 rounded-xl border border-purple-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all resize-none"
+                    />
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          if (customCaseInput.trim()) {
+                            handleExtraOption({ type: 'custom', data: customCaseInput.trim() });
+                            setCustomCaseInput('');
+                            setShowExtraOptions(false);
+                          }
+                        }}
+                        disabled={!customCaseInput.trim() || isProcessingExtra}
+                        className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isProcessingExtra ? 'Verwerken...' : 'Analyseer casus'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowExtraOptions(false);
+                          setCustomCaseInput('');
+                        }}
+                        className="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-700 rounded-lg transition-colors"
+                      >
+                        Annuleren
+                      </button>
                     </div>
                   </div>
+                </div>
+              )}
+            </div>
+            {/* Loading State */}
+
+            {/* Back Button */}
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => {
+                  if (!isMuted) playNavigationSound();
+                  setCurrentPage('selection');
+                }}
+                disabled={isGenerating}
+                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Selectie</span>
+              </button>
+              
+              {selectedCaseTitle && (
+                <button
+                  onClick={() => {
+                    generateCaseFromTitle(selectedCaseTitle.title, selectedCaseTitle.techTopic);
+                  }}
+                  disabled={isGenerating}
+                  className={`flex items-center space-x-3 px-8 py-4 rounded-2xl text-white font-semibold text-lg shadow-xl transition-all duration-300 transform hover:scale-105 ${
+                    isGenerating
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-blue-200'
+                  }`}
+                >
+                  {isGenerating ? (
+                    <>
+                      <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Casus wordt gegenereerd...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-6 h-6" />
+                      <span>Kies deze casus</span>
+                      <ArrowRight className="w-6 h-6" />
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {currentPage === 'case' && (
+          <div className="space-y-8">
+            {/* Compact Case Description */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                  <FileText className="w-7 h-7 text-blue-600" />
+                  Ethische Casus
+                </h2>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {selectedFields.map(fieldId => {
+                    const field = WORK_FIELDS.find(f => f.id === fieldId);
+                    return field ? (
+                      <span key={fieldId} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {field.name}
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedTopics.map(topicId => {
+                    const topic = TECH_TOPICS.find(t => t.id === topicId);
+                    return topic ? (
+                      <span key={topicId} className="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                        {topic.name}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+              
+              <div className="prose prose-lg max-w-none">
+                <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {result?.compactCase || result?.case}
+                </p>
+              </div>
+            </div>
+
+            {/* Ethical Compass Workflow */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8 text-center">
+              <div className="mb-6">
+                <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center gap-3">
+                  <Brain className="w-8 h-8 text-purple-600" />
+                  Waar schommelt het morele kompas?
+                </h2>
+                <p className="text-gray-600 text-lg max-w-3xl mx-auto">
+                  Selecteer de <strong>{requiredSelections} ethische spanningsvelden</strong> die volgens jou het meest relevant zijn voor deze casus. 
+                  Op basis van je keuze krijg je gerichte feedback en wordt de casus uitgebreid.
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+                <span className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xs">
+                    {selectedDimensions.length}
+                  </div>
+                  van {requiredSelections} geselecteerd
+                </span>
+              </div>
+            </div>
+
+            {/* Ethical Dimensions Grid */}
+            <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {ETHICAL_DIMENSIONS.map((dimension) => (
+                  <button
+                    key={dimension.id}
+                    onClick={() => toggleDimension(dimension.id)}
+                    disabled={showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                      selectedDimensions.includes(dimension.id)
+                        ? 'border-purple-500 bg-purple-50 shadow-lg'
+                        : showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)
+                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
+                        : 'border-gray-200 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                        <Brain className="w-6 h-6" />
+                      </div>
+                      {selectedDimensions.includes(dimension.id) && (
+                        <CheckCircle className="w-6 h-6 text-purple-600" />
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2 text-sm">{dimension.name}</h3>
+                    <p className="text-xs text-gray-600">{dimension.description}</p>
+                  </button>
                 ))}
               </div>
+            </div>
 
-              {/* Summary */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-8">
-                <div className="text-center space-y-4">
-                  <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full text-sm font-medium">
-                    <Lightbulb className="w-4 h-4" />
-                    <span>Ethische Reflectie Voltooid</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900">
-                    Je hebt alle perspectieven verkend
-                  </h3>
-                  <p className="text-gray-600 max-w-2xl mx-auto">
-                    Door de ethische dimensies en stakeholder perspectieven te analyseren, 
-                    heb je een diepgaand begrip ontwikkeld van dit complexe dilemma. 
-                    Deze holistische benadering helpt bij het maken van weloverwogen beslissingen.
+            {/* Feedback Section */}
+            {showFeedback && result && (
+              <div className="backdrop-blur-xl bg-gradient-to-r from-green-50 to-emerald-50 rounded-3xl shadow-lg border border-green-200 p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                    <CheckCircle className="w-7 h-7 text-green-600" />
+                    Feedback: De Juiste Ethische Spanningsvelden
+                  </h2>
+                  <p className="text-gray-600">Hier zijn de drie meest relevante ethische dimensies voor deze casus:</p>
+                </div>
+                
+                <div className="space-y-4">
+                  {result.correctDimensions.map((dimensionId, index) => {
+                    const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
+                    const isUserCorrect = selectedDimensions.includes(dimensionId);
+                    
+                    return dimension ? (
+                      <div key={dimensionId} className={`p-6 rounded-2xl border-2 ${
+                        isUserCorrect 
+                          ? 'border-green-400 bg-green-50' 
+                          : 'border-orange-400 bg-orange-50'
+                      }`}>
+                        <div className="flex items-start gap-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-lg`}>
+                            {isUserCorrect ? (
+                              <CheckCircle className="w-6 h-6" />
+                            ) : (
+                              <span className="font-bold">{index + 1}</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-semibold text-gray-800">{dimension.name}</h3>
+                              {isUserCorrect && (
+                                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                  ✓ Correct gekozen
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-700 text-sm mb-3">{dimension.description}</p>
+                            <div className="bg-white/80 p-4 rounded-xl">
+                              <h4 className="font-medium text-gray-800 mb-2">Waarom dit relevant is voor deze casus:</h4>
+                              <p className="text-gray-700 text-sm">
+                                {result.explanations[index] || 'Uitleg wordt geladen...'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+                
+                <div className="mt-6 p-4 bg-white/80 rounded-xl">
+                  <h3 className="font-semibold text-gray-800 mb-2">Jouw Score:</h3>
+                  <p className="text-gray-700">
+                    Je hebt <strong>{selectedDimensions.filter(id => result.correctDimensions.includes(id)).length} van de {requiredSelections}</strong> juiste ethische spanningsvelden geïdentificeerd.
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length === requiredSelections && (
+                      <span className="text-green-600 font-medium"> Uitstekend werk! 🎉</span>
+                    )}
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length >= Math.floor(requiredSelections * 0.6) && selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < requiredSelections && (
+                      <span className="text-orange-600 font-medium"> Goed gedaan! 👍</span>
+                    )}
+                    {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < Math.floor(requiredSelections * 0.6) && (
+                      <span className="text-red-600 font-medium"> Probeer de casus nog eens goed door te lezen. 🤔</span>
+                    )}
                   </p>
                 </div>
               </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => {
+                  if (!isMuted) playNavigationSound();
+                  setCurrentPage('titles');
+                }}
+                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Casus Titels</span>
+              </button>
+              
+              {selectedDimensions.length === requiredSelections && !showFeedback && (
+                <button
+                  onClick={() => {
+                    if (!isMuted) playConfirmSound();
+                    setShowFeedback(true);
+                  }}
+                  className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <CheckCircle className="w-5 h-5" />
+                  <span>Toon Feedback</span>
+                </button>
+              )}
+              
+              {showFeedback && (
+                <button
+                  onClick={() => {
+                    if (!isMuted) playSelectSound();
+                    retryDimensionSelection();
+                  }}
+                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <RefreshCw className="w-5 h-5" />
+                  <span>Opnieuw proberen</span>
+                </button>
+              )}
+              
+              {showFeedback && (
+                <button
+                  onClick={() => {
+                    if (!isMuted) playNavigationSound();
+                    expandCase();
+                  }}
+                  disabled={isExpandingCase}
+                  className={`flex items-center space-x-2 px-8 py-3 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                    isExpandingCase
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700'
+                  }`}
+                >
+                  {isExpandingCase ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Wordt geladen...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      <span>Ga naar Belanghebbenden</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
+                </button>
+              )}
             </div>
-          )}
-        </main>
-      </div>
+          </div>
+        )}
+        
+        {currentPage === 'stakeholders' && (
+          <div className="space-y-8">
+            {/* Expanded Case Description */}
+            {result && (
+              <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                    <FileText className="w-7 h-7 text-blue-600" />
+                    Uitgebreide Casus Analyse
+                  </h2>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {result?.correctDimensions?.map(dimensionId => {
+                      const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
+                      return dimension ? (
+                        <span key={dimensionId} className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                          {dimension.name}
+                        </span>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+                
+                {(result.expandedCase || result.compactCase || result.case) ? (
+                  <div className="prose prose-lg max-w-none">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {result.expandedCase || result.compactCase || result.case}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                    <p className="text-yellow-800">
+                      De casus wordt geladen... Als dit bericht blijft staan, ga dan terug naar de vorige pagina en probeer opnieuw.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Stakeholders */}
+            {result?.stakeholders && result.stakeholders.length > 0 && (
+              <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
+                <div className="mb-6">
+                  <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
+                    <UserCheck className="w-7 h-7 text-indigo-600" />
+                    Belanghebbenden & Rollen
+                  </h2>
+                  <p className="text-gray-600">Verschillende perspectieven voor een rijke discussie.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {result.stakeholders.map((stakeholder, index) => (
+                    <div key={index} className="bg-white/80 rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-800 text-lg mb-2">{stakeholder.role}</h3>
+                          <div className="space-y-3">
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-600 mb-1">Belangen:</h4>
+                              <p className="text-gray-700 text-sm">{stakeholder.interests}</p>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium text-gray-600 mb-1">Perspectief:</h4>
+                              <p className="text-gray-700 text-sm">{stakeholder.perspective}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => {
+                  if (!isMuted) playNavigationSound();
+                  setCurrentPage('case');
+                }}
+                className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Casus</span>
+              </button>
+              <button
+                onClick={() => {
+                  if (!isMuted) playNavigationSound();
+                  resetForm();
+                }}
+                className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+              >
+                <ArrowRight className="w-5 h-5 rotate-180" />
+                <span>Terug naar Hoofdmenu</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
