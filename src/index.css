@@ -14,6 +14,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background-image: url('./Schutblad opening.jpg');
+    background-image: url('/Schutblad%20opening.jpg');
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
