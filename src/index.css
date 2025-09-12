@@ -10,11 +10,6 @@
   html {
     margin: 0;
     padding: 0;
-    background-image: url('/schutblad-opening.jpg');
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: cover;
-    background-attachment: fixed;
     min-height: 100vh;
   }
 
@@ -27,7 +22,11 @@
     min-height: 100vh;
     margin: 0;
     padding: 0;
-    background: transparent;
+    background-image: url('/schutblad-opening.jpg');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    background-attachment: fixed;
   }
 
   #root {
