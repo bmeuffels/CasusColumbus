@@ -13,14 +13,14 @@
       sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
     background-image: url('/Schutblad%20opening.jpg');
     background-repeat: no-repeat;
     background-position: center center;
     background-size: cover;
     background-attachment: fixed;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
   }
 
   body::before {
