@@ -263,6 +263,33 @@ function App() {
   const [result, setResult] = useState<CaseResult | null>(null);
   const [showDebug, setShowDebug] = useState(false);
   const [debugResult, setDebugResult] = useState<string>('');
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string>('');
+
+  const testAPIKey = async () => {
+    setShowDebugInfo(true);
+    setDebugInfo('🔄 API Key wordt getest...\n\nEven geduld...');
+    
+    try {
+      const response = await fetch('/api/test-key', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setDebugInfo(`❌ API Key test gefaald!\n\nStatus: ${response.status}\nFout: ${errorData.error || 'Onbekende fout'}\n\nControleer je API key configuratie.`);
+        return;
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setDebugInfo(`✅ API Key werkt perfect!\n\nModel: ${result.model || 'Onbekend'}\nStatus: Verbonden\n\nJe kunt nu casussen genereren.`);
+      } else {
+        setDebugInfo(`❌ API Key probleem!\n\nFout: ${result.error || 'Onbekende fout'}\n\nControleer je configuratie.`);
       }
     } catch (error) {
       setDebugInfo(`❌ Netwerk fout!\n\nDetails:\n${error.message}`);
@@ -602,7 +629,7 @@ function App() {
         </div>
         
         {/* Debug knop - alleen zichtbaar op hoofdpagina */}
-        {currentStep === 'selection' && (
+        {currentPage === 'selection' && (
           <div className="fixed bottom-4 right-4">
             <button
               onClick={testAPIKey}
