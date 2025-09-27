@@ -23,9 +23,9 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.MISTRAL_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Gemini API key not configured' });
+    return res.status(500).json({ error: 'Mistral API key not configured' });
   }
 
   const prompt = `Genereer een realistische ethische casus voor professionals uit ${selectedFields.join(', ')} over ${selectedTopics.join(', ')}.
@@ -80,50 +80,45 @@ BELANGRIJK: Het aantal correctDimensions moet tussen 3 en 5 liggen. Selecteer al
 Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieven. Maak de casus complex genoeg voor een goede discussie, maar wel begrijpelijk. Gebruik Nederlandse taal en zorg dat de casus relevant is voor de Nederlandse context.`;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        contents: [
+        model: 'mistral-large-latest',
+        messages: [
           {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
+            role: 'user',
+            content: prompt
           }
         ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048
-        }
+        temperature: 0.7,
+        max_tokens: 2048
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API Error Details:', errorText);
+      console.error('Mistral API Error Details:', errorText);
       console.error('Response status:', response.status);
       console.error('Response headers:', response.headers);
       return res.status(500).json({ 
-        error: `Gemini API Error: ${response.status}`,
+        error: `Mistral API Error: ${response.status}`,
         details: errorText,
         apiKey: apiKey ? 'Present' : 'Missing'
       });
     }
 
     const data = await response.json();
-    console.log('Gemini API Response:', data);
+    console.log('Mistral API Response:', data);
     
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error('Onverwachte response structuur van Gemini API');
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Onverwachte response structuur van Mistral API');
     }
     
-    const content = data.candidates[0].content.parts[0].text;
+    const content = data.choices[0].message.content;
     
     // Parse JSON from the response with better error handling
     try {

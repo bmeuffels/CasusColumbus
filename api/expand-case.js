@@ -23,10 +23,10 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = process.env.MISTRAL_API_KEY;
   console.log("API key aanwezig?", !!apiKey);
   if (!apiKey) {
-    return res.status(500).json({ error: 'Gemini API key not configured' });
+    return res.status(500).json({ error: 'Mistral API key not configured' });
   }
 
   const prompt = `Gegeven deze compacte ethische casus:
@@ -52,46 +52,41 @@ Geef de output in het volgende JSON formaat:
 Gebruik Nederlandse taal en zorg dat de uitbreiding naadloos aansluit op de originele casus.`;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch('https://api.mistral.ai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        contents: [
+        model: 'mistral-large-latest',
+        messages: [
           {
-            parts: [
-              {
-                text: prompt
-              }
-            ]
+            role: 'user',
+            content: prompt
           }
         ],
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 2048
-        }
+        temperature: 0.7,
+        max_tokens: 2048
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API Error Details:', errorText);
+      console.error('Mistral API Error Details:', errorText);
       return res.status(500).json({ 
-        error: `Gemini API Error: ${response.status}`,
+        error: `Mistral API Error: ${response.status}`,
         details: errorText
       });
     }
 
     const data = await response.json();
     
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error('Onverwachte response structuur van Gemini API');
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Onverwachte response structuur van Mistral API');
     }
     
-    const content = data.candidates[0].content.parts[0].text;
+    const content = data.choices[0].message.content;
     
     // Parse JSON from the response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
