@@ -260,48 +260,6 @@ function App() {
   const [isGeneratingTitles, setIsGeneratingTitles] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<CaseResult | null>(null);
-  const [showDebugResult, setShowDebugResult] = useState(false);
-  const [debugResult, setDebugResult] = useState('');
-  const [isTestingAPI, setIsTestingAPI] = useState(false);
-
-  const testAPIKey = async () => {
-    try {
-      setIsTestingAPI(true);
-      
-      // First check if the endpoint exists
-      const response = await fetch('/api/test-api', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      // Check if we got HTML instead of JSON (Vercel error page)
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
-        throw new Error(`API endpoint niet gevonden. Vercel geeft HTML terug: ${text.substring(0, 100)}...`);
-      }
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        setDebugResult(`✅ SUCCESS!\n\nAPI Key werkt perfect!\n\n${JSON.stringify(data, null, 2)}`);
-      } else {
-        setDebugResult(`❌ API Key probleem!\n\nFout:\n${JSON.stringify(data, null, 2)}`);
-      }
-    } catch (error) {
-      if (error.message.includes('API endpoint niet gevonden')) {
-        setDebugResult(`❌ Deployment probleem!\n\nDe API endpoints zijn niet correct gedeployed op Vercel.\n\nOplossingen:\n1. Redeploy je project in Vercel\n2. Controleer of de /api/ folder correct is geüpload\n3. Controleer Vercel Functions logs\n\nTechnische details:\n${error.message}`);
-      } else {
-        setDebugResult(`❌ Netwerk fout!\n\nDetails:\n${error.message}`);
-      }
-    } finally {
-      setIsTestingAPI(false);
-    }
-    setShowDebugResult(true);
-  };
-
   const [currentPage, setCurrentPage] = useState<'selection' | 'titles' | 'case' | 'stakeholders'>('selection');
   const [isExpandingCase, setIsExpandingCase] = useState(false);
   // Sync trigger - versie 1.1
@@ -406,12 +364,6 @@ function App() {
         })
       });
 
-      // Check for HTML response (Vercel error)
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('API endpoint niet beschikbaar. Controleer je Vercel deployment.');
-      }
-
       if (!response.ok) {
         throw new Error(`API Error: ${response.status}`);
       }
@@ -455,12 +407,6 @@ function App() {
           caseTitle: selectedTitle
         })
       });
-
-      // Check for HTML response (Vercel error)
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('API endpoint niet beschikbaar. Controleer je Vercel deployment.');
-      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -509,12 +455,6 @@ function App() {
           selectedDimensions: correctDimensionNames.split(', ')
         })
       });
-
-      // Check for HTML response (Vercel error)
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('API endpoint niet beschikbaar. Controleer je Vercel deployment.');
-      }
 
       if (!response.ok) {
         console.error(`API Error: ${response.status}`);
@@ -1274,33 +1214,6 @@ function App() {
           </div>
         )}
       </main>
-
-      {/* Debug Button */}
-      <button
-        onClick={testAPIKey}
-        disabled={isTestingAPI}
-        className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg transition-colors duration-200 text-sm font-medium z-50"
-      >
-        {isTestingAPI ? '🔄 Testing...' : '🔧 Test API Key'}
-      </button>
-
-      {/* Debug Result Modal */}
-      {showDebugResult && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-96 overflow-auto">
-            <h3 className="text-lg font-bold mb-4">API Test Resultaat</h3>
-            <pre className="bg-gray-100 p-4 rounded text-sm whitespace-pre-wrap overflow-auto">
-              {debugResult}
-            </pre>
-            <button
-              onClick={() => setShowDebugResult(false)}
-              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-            >
-              Sluiten
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
