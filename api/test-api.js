@@ -1223,6 +1223,8 @@ function App() {
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
               >
                 <ArrowRight className="w-5 h-5 rotate-180" />
+        )
+        }
     // Test with a simple request
     const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
     
@@ -1240,6 +1242,8 @@ function App() {
               </button>
             </div>
           </div>
+    }
+    )
     let data;
     const responseText = await response.text();
     
@@ -1278,6 +1282,8 @@ function App() {
             >
               Sluiten
             </button>
+      )
+      }
     console.error('Test API Error:', error);
           </div>
         </div>
