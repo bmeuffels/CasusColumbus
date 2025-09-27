@@ -1223,7 +1223,10 @@ function App() {
                 className="flex items-center space-x-2 px-6 py-3 bg-white/80 hover:bg-white rounded-xl border border-gray-300 hover:border-gray-400 transition-all duration-300 text-gray-700 hover:text-gray-900"
               >
                 <ArrowRight className="w-5 h-5 rotate-180" />
-                <span>Terug naar Casus</span>
+    // Test with a simple request
+    const testUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+    
+    const response = await fetch(testUrl, {
               </button>
               <button
                 onClick={() => {
@@ -1237,14 +1240,26 @@ function App() {
               </button>
             </div>
           </div>
-        )}
+    let data;
+    const responseText = await response.text();
+    
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      return res.status(500).json({
+        error: 'Invalid response from Gemini API',
+        details: `Response was not JSON: ${responseText.substring(0, 200)}...`,
+        status: response.status,
+        statusText: response.statusText
+      });
+    }
       </main>
 
       {/* Debug Button */}
       <button
         onClick={testAPIKey}
         disabled={isTestingAPI}
-        className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg transition-colors duration-200 text-sm font-medium z-50"
+        details: responseText,
       >
         {isTestingAPI ? '🔄 Testing...' : '🔧 Test API Key'}
       </button>
@@ -1263,9 +1278,11 @@ function App() {
             >
               Sluiten
             </button>
+    console.error('Test API Error:', error);
           </div>
         </div>
-      )}
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     </div>
   );
 }

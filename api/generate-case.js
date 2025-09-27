@@ -1,7 +1,6 @@
 import { ChevronRight, RotateCcw, Users, CheckCircle, AlertCircle, Lightbulb, ArrowLeft, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { useState as useDebugState } from 'react';
-import { useState as useDebugState } from 'react';
 import { 
   Brain, 
   Laptop, 
@@ -264,12 +263,26 @@ function App() {
   const [result, setResult] = useState<CaseResult | null>(null);
   const [showDebug, setShowDebug] = useState(false);
   const [debugResult, setDebugResult] = useState<string>('');
-  const [showDebug, setShowDebug] = useState(false);
-  const [debugResult, setDebugResult] = useState<string>('');
+  const [showDebugResult, setShowDebugResult] = useState(false);
+  const [debugResult, setDebugResult] = useState('');
+  const [isTestingAPI, setIsTestingAPI] = useState(false);
+
+  const testAPIKey = async () => {
+    setIsTestingAPI(true);
+    try {
+      const response = await fetch('/api/test-api');
+      const data = await response.json();
+      
+      if (response.ok) {
+        setDebugResult(`✅ API Key werkt!\n\nDetails:\n${JSON.stringify(data, null, 2)}`);
+      } else {
+        setDebugResult(`❌ API Key probleem!\n\nFout:\n${JSON.stringify(data, null, 2)}`);
       }
     } catch (error) {
-      setDebugInfo(`❌ Netwerk fout!\n\nDetails:\n${error.message}`);
+      setDebugResult(`❌ Netwerk fout!\n\nDetails:\n${error.message}`);
     }
+    setIsTestingAPI(false);
+    setShowDebugResult(true);
   };
 
   const [currentPage, setCurrentPage] = useState<'selection' | 'titles' | 'case' | 'stakeholders'>('selection');
@@ -603,38 +616,6 @@ function App() {
             </div>
           </div>
         </div>
-        
-        {/* Debug knop - alleen zichtbaar op hoofdpagina */}
-        {currentStep === 'selection' && (
-          <div className="fixed bottom-4 right-4">
-            <button
-              onClick={testAPIKey}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium transition-colors"
-            >
-              🔧 Test API Key
-            </button>
-          </div>
-        )}
-        
-        {/* Debug info popup */}
-        {showDebugInfo && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-96 overflow-auto">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold">API Key Test Resultaat</h3>
-                <button
-                  onClick={() => setShowDebugInfo(false)}
-                  className="text-gray-500 hover:text-gray-700 text-xl"
-                >
-                  ×
-                </button>
-              </div>
-              <pre className="bg-gray-100 p-4 rounded text-sm whitespace-pre-wrap font-mono">
-                {debugInfo}
-              </pre>
-            </div>
-          </div>
-        )}
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8 relative z-10">
@@ -1228,6 +1209,7 @@ function App() {
                       </div>
                     </div>
                   ))}
+      });
                 </div>
               </div>
             )}
@@ -1247,7 +1229,9 @@ function App() {
               <button
                 onClick={() => {
                   if (!isMuted) playNavigationSound();
-                  resetForm();
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+    
+    const response = await fetch(apiUrl, {
                 }}
                 className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
@@ -1258,6 +1242,45 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Debug Button */}
+      <button
+    const responseText = await response.text();
+    let data;
+    
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+        className="fixed bottom-4 right-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-lg transition-colors duration-200 text-sm font-medium z-50"
+        error: 'Invalid response from Gemini API',
+        details: `Response was not JSON: ${responseText.substring(0, 200)}...`
+      </button>
+
+      {/* Debug Result Modal */}
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: 'Er is een fout opgetreden bij het genereren van de casus',
+        details: responseText,
+        status: response.status
+      });
+    }
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-96 overflow-auto">
+            <h3 className="text-lg font-bold mb-4">API Test Resultaat</h3>
+            <pre className="bg-gray-100 p-4 rounded text-sm whitespace-pre-wrap overflow-auto">
+              {debugResult}
+            </pre>
+            <button
+              onClick={() => setShowDebugResult(false)}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+            >
+              Sluiten
+            </button>
+    console.error('Generate Case Error:', error);
+          </div>
+        </div>
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     </div>
   );
 }
