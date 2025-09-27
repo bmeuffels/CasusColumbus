@@ -80,7 +80,7 @@ BELANGRIJK: Het aantal correctDimensions moet tussen 3 en 5 liggen. Selecteer al
 Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieven. Maak de casus complex genoeg voor een goede discussie, maar wel begrijpelijk. Gebruik Nederlandse taal en zorg dat de casus relevant is voor de Nederlandse context.`;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -94,7 +94,13 @@ Zorg voor minimaal 4-6 verschillende stakeholders met verschillende perspectieve
               }
             ]
           }
-        ]
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048
+        }
       })
     });
 
