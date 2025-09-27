@@ -1,6 +1,7 @@
 import { ChevronRight, RotateCcw, Users, CheckCircle, AlertCircle, Lightbulb, ArrowLeft, Sparkles, Volume2, VolumeX } from 'lucide-react';
 import { playSelectSound, playDeselectSound, playConfirmSound, playNavigationSound } from './utils/soundEffects';
 import { useState as useDebugState } from 'react';
+import { useState as useDebugState } from 'react';
 import { 
   Brain, 
   Laptop, 
@@ -263,6 +264,8 @@ function App() {
   const [result, setResult] = useState<CaseResult | null>(null);
   const [showDebug, setShowDebug] = useState(false);
   const [debugResult, setDebugResult] = useState<string>('');
+  const [showDebug, setShowDebug] = useState(false);
+  const [debugResult, setDebugResult] = useState<string>('');
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>('');
 
@@ -515,12 +518,54 @@ function App() {
         console.warn('No expanded case received, using original case');
         setResult(prev => prev ? {
           ...prev,
-          expandedCase: prev.compactCase || prev.case
-        } : null);
+      alert('🔍 Testing API...\n\nDit kan even duren...');
+      
+      // Test 1: Check if API endpoint exists
+      console.log('Testing API endpoint...');
+      const response = await fetch('/api/test-api');
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', [...response.headers.entries()]);
+      
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+      
+      let debugInfo = `🔍 DEBUG INFORMATIE:\n\n`;
+      debugInfo += `Status: ${response.status} ${response.statusText}\n`;
+      debugInfo += `Content-Type: ${response.headers.get('content-type')}\n`;
+      debugInfo += `Response length: ${responseText.length} characters\n\n`;
+      
+      if (responseText.length === 0) {
+        debugInfo += `❌ PROBLEEM: API geeft geen response terug!\n`;
+        debugInfo += `Dit betekent dat je API endpoints niet correct zijn gedeployed op Vercel.\n\n`;
+        debugInfo += `OPLOSSING:\n`;
+        debugInfo += `1. Ga naar Vercel dashboard\n`;
+        debugInfo += `2. Klik op je project\n`;
+        debugInfo += `3. Ga naar Functions tab\n`;
+        debugInfo += `4. Controleer of /api/test-api.js bestaat\n`;
+        debugInfo += `5. Redeploy je project`;
+      } else if (responseText.startsWith('<')) {
+        debugInfo += `❌ PROBLEEM: API geeft HTML terug in plaats van JSON!\n`;
+        debugInfo += `HTML inhoud: ${responseText.substring(0, 200)}...\n\n`;
+        debugInfo += `Dit betekent waarschijnlijk een server error.\n`;
+        debugInfo += `Controleer je Vercel Function Logs.`;
+      } else {
+        try {
+          const jsonResult = JSON.parse(responseText);
+          debugInfo += `✅ SUCCESS: API geeft geldige JSON terug!\n`;
+          debugInfo += `Result: ${JSON.stringify(jsonResult, null, 2)}`;
+        } catch (parseError) {
+          debugInfo += `❌ PROBLEEM: Response is geen geldige JSON!\n`;
+          debugInfo += `Raw response: ${responseText}\n`;
+          debugInfo += `Parse error: ${parseError.message}`;
+        }
       }
       
+      alert(debugInfo);
+      
       setCurrentPage('stakeholders');
-    } catch (error) {
+      console.error('Debug test error:', error);
+      alert(`❌ NETWERK FOUT!\n\nError: ${error.message}\n\nDit betekent dat je API endpoint helemaal niet bereikbaar is.\n\nControleer of je project correct is gedeployed op Vercel.`);
       console.error('Error expanding case:', error);
       // Fallback: use original case and continue
       setResult(prev => prev ? {
