@@ -52,7 +52,7 @@ Geef de output in het volgende JSON formaat:
 Gebruik Nederlandse taal en zorg dat de uitbreiding naadloos aansluit op de originele casus.`;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +73,12 @@ Gebruik Nederlandse taal en zorg dat de uitbreiding naadloos aansluit op de orig
     });
 
     if (!response.ok) {
-      throw new Error(`Gemini API Error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Gemini API Error Details:', errorText);
+      return res.status(500).json({ 
+        error: `Gemini API Error: ${response.status}`,
+        details: errorText
+      });
     }
 
     const data = await response.json();

@@ -69,7 +69,7 @@ BELANGRIJK:
 - Gebruik Nederlandse taal en Nederlandse context`;
 
   try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -90,7 +90,12 @@ BELANGRIJK:
     });
 
     if (!response.ok) {
-      throw new Error(`Gemini API Error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Gemini API Error Details:', errorText);
+      return res.status(500).json({ 
+        error: `Gemini API Error: ${response.status}`,
+        details: errorText
+      });
     }
 
     const data = await response.json();
