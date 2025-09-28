@@ -266,7 +266,6 @@ function App() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
   const [isMuted, setIsMuted] = useState(false);
-  const [reflectionTexts, setReflectionTexts] = useState<string[]>([]);
 
   const toggleField = (fieldId: string) => {
     const wasSelected = selectedFields.includes(fieldId);
@@ -323,35 +322,9 @@ function App() {
     setSelectedDimensions(prev => {
       if (prev.includes(dimensionId)) {
         if (!isMuted) playDeselectSound();
-        // Remove reflection text for this dimension
-        const dimensionIndex = ETHICAL_DIMENSIONS.findIndex(d => d.id === dimensionId);
-        if (dimensionIndex !== -1) {
-          const newReflections = [...reflectionTexts];
-          newReflections[dimensionIndex] = '';
-          setReflectionTexts(newReflections);
-        }
         return prev.filter(id => id !== dimensionId);
       } else if (prev.length < requiredSelections) {
         if (!isMuted) playSelectSound();
-        // Add reflection text for this dimension
-        const dimensionIndex = ETHICAL_DIMENSIONS.findIndex(d => d.id === dimensionId);
-        if (dimensionIndex !== -1) {
-          const reflectionOptions = [
-            "Interessante keuze. Wat zegt dit over jouw blik op de situatie?",
-            "Je interpretatie geeft richting aan het gesprek. Hoe zou een ander dit kunnen zien?",
-            "Deze invalshoek opent nieuwe perspectieven. Welke nuances zie je hier?",
-            "Een waardevolle observatie. Wat maakt dit aspect zo relevant voor jou?",
-            "Je keuze toont een specifieke focus. Welke ervaringen liggen hieraan ten grondslag?",
-            "Dit perspectief brengt diepte in de discussie. Hoe zou dit doorwerken?",
-            "Een doordachte selectie. Wat zou dit betekenen voor de betrokkenen?",
-            "Je hebt oog voor dit dilemma. Welke spanning ervaar je hierbij?",
-            "Deze dimensie raakt de kern. Hoe balanceer je verschillende belangen hier?",
-            "Een relevante invalshoek. Wat zou de langetermijnimpact hiervan zijn?"
-          ];
-          const newReflections = [...reflectionTexts];
-          newReflections[dimensionIndex] = reflectionOptions[Math.floor(Math.random() * reflectionOptions.length)];
-          setReflectionTexts(newReflections);
-        }
         return [...prev, dimensionId];
       } else {
         return prev;
@@ -362,7 +335,6 @@ function App() {
   const retryDimensionSelection = () => {
     setSelectedDimensions([]);
     setShowFeedback(false);
-    setReflectionTexts([]);
   };
 
   const generateCase = async () => {
@@ -416,7 +388,6 @@ function App() {
     setSelectedDimensions([]);
     setShowFeedback(false);
     setRequiredSelections(3);
-    setReflectionTexts([]);
 
     setIsGenerating(true);
 
@@ -535,7 +506,6 @@ function App() {
     setResult(null);
     setShowFeedback(false);
     setRequiredSelections(3);
-    setReflectionTexts([]);
     setCurrentPage('selection');
   };
 
@@ -973,40 +943,30 @@ function App() {
             {/* Ethical Dimensions Grid */}
             <div className="backdrop-blur-xl bg-white/60 rounded-3xl shadow-lg border border-blue-200/50 p-8">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {ETHICAL_DIMENSIONS.map((dimension, index) => (
-                  <div key={dimension.id} className="space-y-2">
-                    <button
-                      onClick={() => toggleDimension(dimension.id)}
-                      disabled={showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)}
-                      className={`w-full p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
-                        selectedDimensions.includes(dimension.id)
-                          ? 'border-purple-500 bg-purple-50 shadow-lg'
-                          : showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)
-                          ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
-                          : 'border-gray-200 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
-                          <Brain className="w-6 h-6" />
-                        </div>
-                        {selectedDimensions.includes(dimension.id) && (
-                          <CheckCircle className="w-6 h-6 text-purple-600" />
-                        )}
+                {ETHICAL_DIMENSIONS.map((dimension) => (
+                  <button
+                    key={dimension.id}
+                    onClick={() => toggleDimension(dimension.id)}
+                    disabled={showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)}
+                    className={`p-6 rounded-2xl border-2 transition-all duration-300 text-left group hover:scale-105 ${
+                      selectedDimensions.includes(dimension.id)
+                        ? 'border-purple-500 bg-purple-50 shadow-lg'
+                        : showFeedback || (!selectedDimensions.includes(dimension.id) && selectedDimensions.length >= requiredSelections)
+                        ? 'border-gray-200 bg-gray-100/50 opacity-50 cursor-not-allowed'
+                        : 'border-gray-200 bg-white/80 hover:border-purple-300 hover:bg-purple-50/50'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-lg group-hover:scale-110 transition-transform`}>
+                        <Brain className="w-6 h-6" />
                       </div>
-                      <h3 className="font-semibold text-gray-800 mb-2 text-sm">{dimension.name}</h3>
-                      <p className="text-xs text-gray-600">{dimension.description}</p>
-                    </button>
-                    
-                    {/* Show reflection text when dimension is selected */}
-                    {selectedDimensions.includes(dimension.id) && reflectionTexts[index] && (
-                      <div className="ml-8 p-3 bg-orange-50 border-l-4 border-orange-300 rounded-r-lg animate-in slide-in-from-top-2">
-                        <p className="text-sm text-orange-800 italic">
-                          💭 {reflectionTexts[index]}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                      {selectedDimensions.includes(dimension.id) && (
+                        <CheckCircle className="w-6 h-6 text-purple-600" />
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-gray-800 mb-2 text-sm">{dimension.name}</h3>
+                    <p className="text-xs text-gray-600">{dimension.description}</p>
+                  </button>
                 ))}
               </div>
             </div>
@@ -1017,36 +977,50 @@ function App() {
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-3">
                     <CheckCircle className="w-7 h-7 text-green-600" />
-                    Jouw Interpretatie
+                    Feedback: De Juiste Ethische Spanningsvelden
                   </h2>
-                  <p className="text-gray-600">
-                    Je hebt {selectedDimensions.length} ethische dimensie{selectedDimensions.length !== 1 ? 's' : ''} geïdentificeerd. 
-                    Elke interpretatie brengt waardevolle perspectieven naar voren voor de discussie.
-                  </p>
+                  <p className="text-gray-600">Hier zijn de drie meest relevante ethische dimensies voor deze casus:</p>
                 </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-orange-700 mb-3">🎯 Jouw geselecteerde dimensies:</h4>
-                  {selectedDimensions.map((dim) => {
-                    const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dim);
-                    const dimensionIndex = ETHICAL_DIMENSIONS.findIndex(d => d.id === dim);
-                    return (
-                      <div key={dim} className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center mt-0.5">
-                            <CheckCircle className="w-4 h-4 text-white" />
+                
+                <div className="space-y-4">
+                  {result.correctDimensions.map((dimensionId, index) => {
+                    const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
+                    const isUserCorrect = selectedDimensions.includes(dimensionId);
+                    
+                    return dimension ? (
+                      <div key={dimensionId} className={`p-6 rounded-2xl border-2 ${
+                        isUserCorrect 
+                          ? 'border-green-400 bg-green-50' 
+                          : 'border-orange-400 bg-orange-50'
+                      }`}>
+                        <div className="flex items-start gap-4">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-r ${dimension.color} text-white shadow-lg`}>
+                            {isUserCorrect ? (
+                              <CheckCircle className="w-6 h-6" />
+                            ) : (
+                              <span className="font-bold">{index + 1}</span>
+                            )}
                           </div>
                           <div className="flex-1">
-                            <span className="font-medium text-gray-800">{dimension?.name}</span>
-                            {reflectionTexts[dimensionIndex] && (
-                              <p className="text-sm text-orange-700 mt-2 italic">
-                                💭 {reflectionTexts[dimensionIndex]}
+                            <div className="flex items-center gap-2 mb-2">
+                              <h3 className="font-semibold text-gray-800">{dimension.name}</h3>
+                              {isUserCorrect && (
+                                <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                  ✓ Correct gekozen
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-gray-700 text-sm mb-3">{dimension.description}</p>
+                            <div className="bg-white/80 p-4 rounded-xl">
+                              <h4 className="font-medium text-gray-800 mb-2">Waarom dit relevant is voor deze casus:</h4>
+                              <p className="text-gray-700 text-sm">
+                                {result.explanations[index] || 'Uitleg wordt geladen...'}
                               </p>
-                            )}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    );
+                    ) : null;
                   })}
                 </div>
                 
