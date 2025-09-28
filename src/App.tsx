@@ -267,6 +267,8 @@ function App() {
   const [requiredSelections, setRequiredSelections] = useState(3);
   const [isMuted, setIsMuted] = useState(false);
   const [reflectionTexts, setReflectionTexts] = useState<string[]>([]);
+  const [generatedFeedback, setGeneratedFeedback] = useState<{[key: string]: string}>({});
+  const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
 
   const toggleField = (fieldId: string) => {
     const wasSelected = selectedFields.includes(fieldId);
@@ -363,6 +365,40 @@ function App() {
     setSelectedDimensions([]);
     setShowFeedback(false);
     setReflectionTexts([]);
+  };
+
+  const generateReflectiveFeedback = async () => {
+    if (!result || selectedDimensions.length === 0) return;
+    
+    setIsGeneratingFeedback(true);
+    
+    try {
+      const response = await fetch('/api/generate-feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          caseContent: result.case,
+          selectedDimensions: selectedDimensions,
+          stakeholders: result.stakeholders
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setGeneratedFeedback(data.feedback);
+      setShowFeedback(true);
+    } catch (error) {
+      console.error('Error generating feedback:', error);
+      // Fallback to showing feedback anyway
+      setShowFeedback(true);
+    } finally {
+      setIsGeneratingFeedback(false);
+    }
   };
 
   const generateCase = async () => {
@@ -1030,6 +1066,7 @@ function App() {
                   {selectedDimensions.map((dim) => {
                     const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dim);
                     const dimensionIndex = ETHICAL_DIMENSIONS.findIndex(d => d.id === dim);
+                    const feedback = generatedFeedback[dim];
                     return (
                       <div key={dim} className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                         <div className="flex items-start space-x-3">
@@ -1043,6 +1080,13 @@ function App() {
                                 💭 {reflectionTexts[dimensionIndex]}
                               </p>
                             )}
+
+                            <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400 mt-4">
+                              <h4 className="font-semibold text-blue-800 mb-2">💭 Reflectieve feedback:</h4>
+                              <p className="text-blue-700 text-sm leading-relaxed">
+                                {feedback || 'Feedback wordt gegenereerd op basis van de specifieke casus en het gekozen ethische spanningsveld...'}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1083,14 +1127,18 @@ function App() {
               
               {selectedDimensions.length === requiredSelections && !showFeedback && (
                 <button
-                  onClick={() => {
-                    if (!isMuted) playConfirmSound();
-                    setShowFeedback(true);
-                  }}
-                  className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  onClick={generateReflectiveFeedback}
+                  disabled={selectedDimensions.length === 0 || isGeneratingFeedback}
+                  className="bg-gradient-to-r from-orange-500 to-yellow-400 text-white px-8 py-3 rounded-lg font-semibold hover:from-orange-600 hover:to-yellow-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  <CheckCircle className="w-5 h-5" />
-                  <span>Toon Feedback</span>
+                  {isGeneratingFeedback ? (
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Genereer feedback...
+                    </div>
+                  ) : (
+                    'Toon feedback'
+                  )}
                 </button>
               )}
               
