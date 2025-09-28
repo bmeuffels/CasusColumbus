@@ -14,6 +14,7 @@ Een professionele web-applicatie voor het genereren van ethische casussen op het
 2. Klik op "New Project"
 3. Selecteer je GitHub repository
 4. Klik op "Deploy"
+5. Kleine wijziging 28-09-2025
 
 ### Stap 3: Environment variabele instellen
 Na deployment, stel je API key in:
