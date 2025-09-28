@@ -58,7 +58,6 @@ interface CaseTitle {
 interface SelectedCaseTitle extends CaseTitle {
   index: number;
 }
-
 interface EthicalDimension {
   id: string;
   name: string;
@@ -261,10 +260,13 @@ function App() {
   const [isGeneratingTitles, setIsGeneratingTitles] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [result, setResult] = useState<CaseResult | null>(null);
-  const [currentPage, setCurrentPage] = useState<'selection' | 'titles' | 'compass' | 'stakeholders'>('selection');
+  const [currentPage, setCurrentPage] = useState<'selection' | 'titles' | 'case' | 'stakeholders'>('selection');
   const [isExpandingCase, setIsExpandingCase] = useState(false);
+  // Sync trigger - versie 1.1
   const [showFeedback, setShowFeedback] = useState(false);
+  const [requiredSelections, setRequiredSelections] = useState(3);
   const [isMuted, setIsMuted] = useState(false);
+  const [reflectionTexts, setReflectionTexts] = useState<string[]>([]);
   const [generatedFeedback, setGeneratedFeedback] = useState<{[key: string]: string}>({});
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
 
@@ -276,6 +278,24 @@ function App() {
         return prev.filter(id => id !== fieldId);
       } else if (prev.length < 2) {
         if (!isMuted) playSelectSound();
+        return [...prev, fieldId];
+      } else {
+        return prev;
+      }
+    });
+    
+    // Don't play sound if no change occurred (when limit reached)
+    if (!wasSelected && selectedFields.length >= 2) {
+      // No sound for blocked selection
+    }
+  };
+
+  const handleFieldToggle = (fieldId: string) => {
+    const wasSelected = selectedFields.includes(fieldId);
+    setSelectedFields(prev => {
+      if (prev.includes(fieldId)) {
+        return prev.filter(id => id !== fieldId);
+      } else if (prev.length < 2) {
         return [...prev, fieldId];
       } else {
         return prev;
@@ -299,17 +319,86 @@ function App() {
   };
 
   const toggleDimension = (dimensionId: string) => {
-    if (showFeedback) return;
+    if (showFeedback) return; // Prevent changes after feedback is shown
     
+    const wasSelected = selectedDimensions.includes(dimensionId);
     setSelectedDimensions(prev => {
       if (prev.includes(dimensionId)) {
         if (!isMuted) playDeselectSound();
+        // Remove reflection text for this dimension
+        const dimensionIndex = ETHICAL_DIMENSIONS.findIndex(d => d.id === dimensionId);
+        if (dimensionIndex !== -1) {
+          const newReflections = [...reflectionTexts];
+          newReflections[dimensionIndex] = '';
+          setReflectionTexts(newReflections);
+        }
         return prev.filter(id => id !== dimensionId);
-      } else {
+      } else if (prev.length < requiredSelections) {
         if (!isMuted) playSelectSound();
+        // Add reflection text for this dimension
+        const dimensionIndex = ETHICAL_DIMENSIONS.findIndex(d => d.id === dimensionId);
+        if (dimensionIndex !== -1) {
+          const reflectionOptions = [
+            "Interessante keuze. Wat zegt dit over jouw blik op de situatie?",
+            "Je interpretatie geeft richting aan het gesprek. Hoe zou een ander dit kunnen zien?",
+            "Deze invalshoek opent nieuwe perspectieven. Welke nuances zie je hier?",
+            "Een waardevolle observatie. Wat maakt dit aspect zo relevant voor jou?",
+            "Je keuze toont een specifieke focus. Welke ervaringen liggen hieraan ten grondslag?",
+            "Dit perspectief brengt diepte in de discussie. Hoe zou dit doorwerken?",
+            "Een doordachte selectie. Wat zou dit betekenen voor de betrokkenen?",
+            "Je hebt oog voor dit dilemma. Welke spanning ervaar je hierbij?",
+            "Deze dimensie raakt de kern. Hoe balanceer je verschillende belangen hier?",
+            "Een relevante invalshoek. Wat zou de langetermijnimpact hiervan zijn?"
+          ];
+          const newReflections = [...reflectionTexts];
+          newReflections[dimensionIndex] = reflectionOptions[Math.floor(Math.random() * reflectionOptions.length)];
+          setReflectionTexts(newReflections);
+        }
         return [...prev, dimensionId];
+      } else {
+        return prev;
       }
     });
+  };
+
+  const retryDimensionSelection = () => {
+    setSelectedDimensions([]);
+    setShowFeedback(false);
+    setReflectionTexts([]);
+  };
+
+  const generateReflectiveFeedback = async () => {
+    if (!result || selectedDimensions.length === 0) return;
+    
+    setIsGeneratingFeedback(true);
+    
+    try {
+      const response = await fetch('/api/generate-feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          caseContent: result.case,
+          selectedDimensions: selectedDimensions,
+          stakeholders: result.stakeholders
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setGeneratedFeedback(data.feedback);
+      setShowFeedback(true);
+    } catch (error) {
+      console.error('Error generating feedback:', error);
+      // Fallback to showing feedback anyway
+      setShowFeedback(true);
+    } finally {
+      setIsGeneratingFeedback(false);
+    }
   };
 
   const generateCase = async () => {
@@ -348,6 +437,8 @@ function App() {
       setCurrentPage('titles');
     } catch (error) {
       console.error('Error generating titles:', error);
+      // Fallback: go directly to case generation
+      await generateCaseFromTitle('Algemene ethische casus', selectedTopicNames);
     } finally {
       setIsGeneratingTitles(false);
     }
@@ -357,9 +448,11 @@ function App() {
     if (selectedFields.length === 0 || selectedTopics.length === 0) return;
 
     if (!isMuted) playNavigationSound();
+    // Reset compass state for new case
     setSelectedDimensions([]);
     setShowFeedback(false);
-    setGeneratedFeedback({});
+    setRequiredSelections(3);
+    setReflectionTexts([]);
 
     setIsGenerating(true);
 
@@ -387,7 +480,8 @@ function App() {
 
       const result = await response.json();
       setResult(result);
-      setCurrentPage('compass');
+      setRequiredSelections(result.correctDimensions.length);
+      setCurrentPage('case');
     } catch (error) {
       console.error('Error:', error);
       setResult({
@@ -398,42 +492,9 @@ function App() {
         explanations: [],
         stakeholders: []
       });
-      setCurrentPage('compass');
+      setCurrentPage('case');
     } finally {
       setIsGenerating(false);
-    }
-  };
-
-  const generateReflectiveFeedback = async () => {
-    if (!result || selectedDimensions.length === 0) return;
-    
-    setIsGeneratingFeedback(true);
-    
-    try {
-      const response = await fetch('/api/generate-feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          caseContent: result.case,
-          selectedDimensions: selectedDimensions,
-          stakeholders: result.stakeholders
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setGeneratedFeedback(data.feedback);
-      setShowFeedback(true);
-    } catch (error) {
-      console.error('Error generating feedback:', error);
-      setShowFeedback(true);
-    } finally {
-      setIsGeneratingFeedback(false);
     }
   };
 
@@ -450,7 +511,7 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          compactCase: result.case,
+          shortCase: result.case,
           selectedDimensions: selectedDimensions.map(id => 
             ETHICAL_DIMENSIONS.find(d => d.id === id)?.name
           ).filter(Boolean)
@@ -474,373 +535,7 @@ function App() {
       setIsExpandingCase(false);
     }
   };
-
-  const resetApp = () => {
-    setSelectedFields([]);
-    setSelectedTopics([]);
-    setSelectedDimensions([]);
-    setCaseTitles([]);
-    setSelectedCaseTitle(null);
-    setResult(null);
-    setCurrentPage('selection');
-    setShowFeedback(false);
-    setGeneratedFeedback({});
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white">
-      {/* Header */}
-      <div className="bg-black/20 backdrop-blur-sm border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg flex items-center justify-center">
-                <Brain className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">Casus Columbus</h1>
-                <p className="text-sm text-gray-300">Ethiek & Technologie Navigator</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setIsMuted(!isMuted)}
-                className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                title={isMuted ? "Geluid aanzetten" : "Geluid uitzetten"}
-              >
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </button>
-              
-              {currentPage !== 'selection' && (
-                <button
-                  onClick={resetApp}
-                  className="flex items-center space-x-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  <span>Opnieuw</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentPage === 'selection' && (
-          <div className="space-y-12">
-            {/* Work Fields Selection */}
-            <div className="text-center space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold mb-4">Kies je vakgebied</h2>
-                <p className="text-gray-300 text-lg">Selecteer maximaal 2 vakgebieden die het beste bij je situatie passen</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {WORK_FIELDS.map((field) => (
-                  <button
-                    key={field.id}
-                    onClick={() => toggleField(field.id)}
-                    disabled={!selectedFields.includes(field.id) && selectedFields.length >= 2}
-                    className={`p-6 rounded-xl border-2 transition-all duration-300 text-left ${
-                      selectedFields.includes(field.id)
-                        ? `bg-gradient-to-br ${field.color} border-white/30 shadow-lg scale-105`
-                        : selectedFields.length >= 2
-                        ? 'bg-white/5 border-gray-600 opacity-50 cursor-not-allowed'
-                        : 'bg-white/10 border-gray-500 hover:border-white/50 hover:bg-white/15'
-                    }`}
-                  >
-                    <div className="flex items-start space-x-4">
-                      <div className={`p-3 rounded-lg ${selectedFields.includes(field.id) ? 'bg-white/20' : 'bg-white/10'}`}>
-                        {field.icon}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-2">{field.name}</h3>
-                        <p className="text-sm opacity-90">{field.description}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tech Topics Selection */}
-            <div className="text-center space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold mb-4">Kies een technologie onderwerp</h2>
-                <p className="text-gray-300 text-lg">Selecteer het technologie onderwerp dat je wilt verkennen</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {TECH_TOPICS.map((topic) => (
-                  <button
-                    key={topic.id}
-                    onClick={() => toggleTopic(topic.id)}
-                    className={`p-6 rounded-xl border-2 transition-all duration-300 text-left ${
-                      selectedTopics.includes(topic.id)
-                        ? `bg-gradient-to-br ${topic.color} border-white/30 shadow-lg scale-105`
-                        : 'bg-white/10 border-gray-500 hover:border-white/50 hover:bg-white/15'
-                    }`}
-                  >
-                    <div className="flex items-start space-x-4">
-                      <div className={`p-3 rounded-lg ${selectedTopics.includes(topic.id) ? 'bg-white/20' : 'bg-white/10'}`}>
-                        {topic.icon}
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg mb-2">{topic.name}</h3>
-                        <p className="text-sm opacity-90">{topic.description}</p>
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Generate Button */}
-            {selectedFields.length > 0 && selectedTopics.length > 0 && (
-              <div className="text-center">
-                <button
-                  onClick={generateCase}
-                  disabled={isGeneratingTitles}
-                  className="inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isGeneratingTitles ? (
-                    <>
-                      <RefreshCw className="w-6 h-6 animate-spin" />
-                      <span>Casussen genereren...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-6 h-6" />
-                      <span>Genereer Casussen</span>
-                      <ChevronRight className="w-6 h-6" />
-                    </>
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {currentPage === 'titles' && (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold mb-4">Kies een casus</h2>
-              <p className="text-gray-300 text-lg">Selecteer de casus die je het meest interessant vindt</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {caseTitles.map((caseTitle, index) => (
-                <button
-                  key={index}
-                  onClick={() => generateCaseFromTitle(caseTitle.title, caseTitle.techTopic)}
-                  disabled={isGenerating}
-                  className="p-6 bg-white/10 hover:bg-white/15 rounded-xl border border-gray-500 hover:border-white/50 transition-all duration-300 text-left group"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-3">
-                        <span className="px-3 py-1 bg-gradient-to-r from-orange-500 to-yellow-500 rounded-full text-xs font-medium">
-                          {caseTitle.techTopic}
-                        </span>
-                      </div>
-                      <h3 className="font-semibold text-lg mb-2 group-hover:text-orange-300 transition-colors">
-                        {caseTitle.title}
-                      </h3>
-                      <p className="text-gray-300 text-sm">
-                        {caseTitle.description}
-                      </p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-orange-300 transition-colors ml-4 flex-shrink-0" />
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            {isGenerating && (
-              <div className="text-center py-8">
-                <div className="inline-flex items-center space-x-3 px-6 py-3 bg-white/10 rounded-lg">
-                  <RefreshCw className="w-5 h-5 animate-spin" />
-                  <span>Casus wordt gegenereerd...</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {currentPage === 'compass' && result && (
-          <div className="space-y-8">
-            {/* Short Case Display */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold mb-4 flex items-center">
-                <FileText className="w-6 h-6 mr-3 text-orange-400" />
-                Korte casus
-              </h2>
-              <div className="prose prose-invert max-w-none">
-                <p className="text-gray-200 leading-relaxed text-lg">
-                  {result.case}
-                </p>
-              </div>
-            </div>
-
-            {/* Moral Compass */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold mb-6 flex items-center">
-                <Brain className="w-6 h-6 mr-3 text-orange-400" />
-                Moreel Kompas
-              </h2>
-              <p className="text-gray-300 mb-6">
-                Selecteer de ethische spanningsvelden die volgens jou het meest relevant zijn voor deze casus:
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {ETHICAL_DIMENSIONS.map((dimension) => (
-                  <button
-                    key={dimension.id}
-                    onClick={() => toggleDimension(dimension.id)}
-                    disabled={showFeedback}
-                    className={`p-4 rounded-lg border-2 transition-all duration-300 text-left ${
-                      selectedDimensions.includes(dimension.id)
-                        ? `bg-gradient-to-br ${dimension.color} border-white/30 shadow-lg`
-                        : showFeedback
-                        ? 'bg-white/5 border-gray-600 opacity-50 cursor-not-allowed'
-                        : 'bg-white/5 border-gray-500 hover:border-white/50 hover:bg-white/10'
-                    }`}
-                  >
-                    <h3 className="font-semibold mb-2">{dimension.name}</h3>
-                    <p className="text-sm opacity-90">{dimension.description}</p>
-                  </button>
-                ))}
-              </div>
-
-              {/* Show Feedback Button */}
-              {selectedDimensions.length > 0 && !showFeedback && (
-                <div className="text-center mb-6">
-                  <button
-                    onClick={generateReflectiveFeedback}
-                    disabled={isGeneratingFeedback}
-                    className="inline-flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 rounded-lg font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isGeneratingFeedback ? (
-                      <>
-                        <RefreshCw className="w-5 h-5 animate-spin" />
-                        <span>Feedback genereren...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Lightbulb className="w-5 h-5" />
-                        <span>Toon feedback</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
-
-              {/* Feedback Display */}
-              {showFeedback && (
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold mb-4 flex items-center">
-                    <Lightbulb className="w-5 h-5 mr-2 text-yellow-400" />
-                    Reflectieve feedback
-                  </h3>
-                  
-                  {selectedDimensions.map((dimensionId) => {
-                    const dimension = ETHICAL_DIMENSIONS.find(d => d.id === dimensionId);
-                    const feedback = generatedFeedback[dimensionId];
-                    
-                    return (
-                      <div key={dimensionId} className="bg-white/5 rounded-lg p-4 border border-white/10">
-                        <h4 className="font-semibold text-orange-300 mb-2">
-                          {dimension?.name}
-                        </h4>
-                        <p className="text-gray-200 leading-relaxed">
-                          {feedback || "Feedback wordt geladen..."}
-                        </p>
-                      </div>
-                    );
-                  })}
-
-                  <div className="text-center pt-6">
-                    <button
-                      onClick={expandCase}
-                      disabled={isExpandingCase}
-                      className="inline-flex items-center space-x-3 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 rounded-lg font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isExpandingCase ? (
-                        <>
-                          <RefreshCw className="w-5 h-5 animate-spin" />
-                          <span>Uitbreiden...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Users className="w-5 h-5" />
-                          <span>Naar belanghebbenden</span>
-                          <ArrowRight className="w-5 h-5" />
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {currentPage === 'stakeholders' && result && (
-          <div className="space-y-8">
-            {/* Expanded Case */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold mb-4 flex items-center">
-                <FileText className="w-6 h-6 mr-3 text-orange-400" />
-                Uitgebreide casus
-              </h2>
-              <div className="prose prose-invert max-w-none">
-                <p className="text-gray-200 leading-relaxed text-lg">
-                  {result.expandedCase || result.case}
-                </p>
-              </div>
-            </div>
-
-            {/* Stakeholders */}
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
-              <h2 className="text-2xl font-bold mb-6 flex items-center">
-                <Users className="w-6 h-6 mr-3 text-orange-400" />
-                Belanghebbenden
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {result.stakeholders.map((stakeholder, index) => (
-                  <div key={index} className="bg-white/5 rounded-lg p-4 border border-white/10">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <UserCheck className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg text-orange-300 mb-2">
-                          {stakeholder.role}
-                        </h3>
-                        <div className="space-y-2">
-                          <div>
-                            <span className="text-sm font-medium text-gray-300">Belangen:</span>
-                            <p className="text-gray-200 text-sm">{stakeholder.interests}</p>
-                          </div>
-                          <div>
-                            <span className="text-sm font-medium text-gray-300">Perspectief:</span>
-                            <p className="text-gray-200 text-sm">{stakeholder.perspective}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+    
 }
 
 export default App;
