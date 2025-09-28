@@ -504,4 +504,35 @@ function App() {
     if (!isMuted) playNavigationSound();
     setIsExpandingCase(true);
 
+    try {
+      const response = await fetch('/api/expand-case', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          shortCase: result.case,
+          selectedDimensions: selectedDimensions.map(id => 
+            ETHICAL_DIMENSIONS.find(d => d.id === id)?.name
+          ).filter(Boolean)
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setResult(prev => prev ? {
+        ...prev,
+        expandedCase: data.expandedCase,
+        stakeholders: data.stakeholders || prev.stakeholders
+      } : null);
+      setCurrentPage('stakeholders');
+    } catch (error) {
+      console.error('Error expanding case:', error);
+    } finally {
+      setIsExpandingCase(false);
+    }
+  };
     
