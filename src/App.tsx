@@ -1035,7 +1035,7 @@ function App() {
                       <span className="text-orange-600 font-medium"> Goed gedaan! 👍</span>
                     )}
                     {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < Math.floor(requiredSelections * 0.6) && (
-                      <span className="text-red-600 font-medium"> Probeer de casus nog eens goed door te lezen. 🤔</span>
+                      <span className="text-red-600 font-medium"> Probeer het nog eens! 💪</span>
                     )}
                   </p>
                 </div>
