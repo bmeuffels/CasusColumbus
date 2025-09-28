@@ -1035,8 +1035,8 @@ function App() {
                       <span className="text-orange-600 font-medium"> Goed gedaan! 👍</span>
                     )}
                     {selectedDimensions.filter(id => result.correctDimensions.includes(id)).length < Math.floor(requiredSelections * 0.6) && (
-                  <p className="text-gray-700 leading-relaxed">
-                    {selectedCase?.case || "Hier komt de ethische casus te staan die je hebt gekozen of gegenereerd."}
+                      <span className="text-red-600 font-medium"> Probeer de casus nog eens goed door te lezen. 🤔</span>
+                    )}
                   </p>
                 </div>
               </div>
