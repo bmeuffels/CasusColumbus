@@ -440,18 +440,13 @@ function App() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Response Error:', response.status, errorText);
-        throw new Error(`API Error: ${response.status}`);
+        const errorData = await response.json();
+        console.error('API Response Error:', response.status, errorText);
+        throw new Error(errorData.error || `API Error: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('Generated case data:', result);
-      
-      // Validate data structure
-      if (!result.case || !result.correctDimensions || !result.stakeholders) {
-        console.error('Invalid data structure:', result);
-        throw new Error('Onvolledige data ontvangen van de server');
-      }
-      
+      console.log('Generated random case data:', result);
       setResult(result);
       setRequiredSelections(result.correctDimensions.length);
       setCurrentPage('case');
@@ -503,6 +498,7 @@ function App() {
         setCurrentPage('stakeholders');
         return;
       }
+      console.log('Generated case data:', result);
 
       const expandedResult = await response.json();
       
@@ -512,6 +508,7 @@ function App() {
           expandedCase: expandedResult.expandedCase
         } : null);
       } else {
+        console.error('Invalid data structure:', expandedResult);
         // Fallback: use original case if expansion fails
         console.warn('No expanded case received, using original case');
         setResult(prev => prev ? {
