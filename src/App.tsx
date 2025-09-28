@@ -440,14 +440,18 @@ function App() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Response Error:', response.status, errorText);
-        const errorData = await response.json();
-        const errorText = await response.text();
-        console.error('API Response Error:', response.status, errorText);
-        throw new Error(errorData.error || `API Error: ${response.status}`);
+        throw new Error(`API Error: ${response.status}`);
       }
 
       const result = await response.json();
-      console.log('Generated random case data:', data);
+      console.log('Generated case data:', result);
+      
+      // Validate data structure
+      if (!result.case || !result.correctDimensions || !result.stakeholders) {
+        console.error('Invalid data structure:', result);
+        throw new Error('Onvolledige data ontvangen van de server');
+      }
+      
       setResult(result);
       setRequiredSelections(result.correctDimensions.length);
       setCurrentPage('case');
@@ -457,12 +461,10 @@ function App() {
         case: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
         compactCase: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
         expandedCase: '',
-        console.error('Invalid data structure:', data);
         correctDimensions: [],
         explanations: [],
         stakeholders: []
       });
-      setError(`Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`);
     } finally {
       setIsGenerating(false);
     }
@@ -501,7 +503,6 @@ function App() {
         setCurrentPage('stakeholders');
         return;
       }
-      console.log('Generated case data:', data);
 
       const expandedResult = await response.json();
       
@@ -511,7 +512,6 @@ function App() {
           expandedCase: expandedResult.expandedCase
         } : null);
       } else {
-        console.error('Invalid data structure:', data);
         // Fallback: use original case if expansion fails
         console.warn('No expanded case received, using original case');
         setResult(prev => prev ? {
@@ -523,7 +523,6 @@ function App() {
       setCurrentPage('stakeholders');
     } catch (error) {
       console.error('Error expanding case:', error);
-      setError(`Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`);
       setResult(prev => prev ? {
         ...prev,
         expandedCase: prev.compactCase || prev.case
@@ -538,7 +537,6 @@ function App() {
     setSelectedFields([]);
     setSelectedTopics([]);
     setSelectedDimensions([]);
-      const response = await fetch('/api/generate-case', {
     setSelectedCaseTitle(null);
     setResult(null);
     setShowFeedback(false);
