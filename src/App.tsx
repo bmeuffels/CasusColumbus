@@ -438,11 +438,16 @@ function App() {
       });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Response Error:', response.status, errorText);
         const errorData = await response.json();
+        const errorText = await response.text();
+        console.error('API Response Error:', response.status, errorText);
         throw new Error(errorData.error || `API Error: ${response.status}`);
       }
 
       const result = await response.json();
+      console.log('Generated random case data:', data);
       setResult(result);
       setRequiredSelections(result.correctDimensions.length);
       setCurrentPage('case');
@@ -452,11 +457,12 @@ function App() {
         case: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
         compactCase: `Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`,
         expandedCase: '',
+        console.error('Invalid data structure:', data);
         correctDimensions: [],
         explanations: [],
         stakeholders: []
       });
-      setCurrentPage('case');
+      setError(`Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`);
     } finally {
       setIsGenerating(false);
     }
@@ -495,6 +501,7 @@ function App() {
         setCurrentPage('stakeholders');
         return;
       }
+      console.log('Generated case data:', data);
 
       const expandedResult = await response.json();
       
@@ -504,6 +511,7 @@ function App() {
           expandedCase: expandedResult.expandedCase
         } : null);
       } else {
+        console.error('Invalid data structure:', data);
         // Fallback: use original case if expansion fails
         console.warn('No expanded case received, using original case');
         setResult(prev => prev ? {
@@ -515,7 +523,7 @@ function App() {
       setCurrentPage('stakeholders');
     } catch (error) {
       console.error('Error expanding case:', error);
-      // Fallback: use original case and continue
+      setError(`Er is een fout opgetreden bij het genereren van de casus: ${error.message}. Probeer het opnieuw.`);
       setResult(prev => prev ? {
         ...prev,
         expandedCase: prev.compactCase || prev.case
@@ -530,7 +538,7 @@ function App() {
     setSelectedFields([]);
     setSelectedTopics([]);
     setSelectedDimensions([]);
-    setCaseTitles([]);
+      const response = await fetch('/api/generate-case', {
     setSelectedCaseTitle(null);
     setResult(null);
     setShowFeedback(false);
@@ -556,7 +564,11 @@ function App() {
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
           style={{
-            backgroundImage: 'url(https://ucb5ea564f8e92f3121e32939587.previews.dropboxusercontent.com/p/thumb/ACta83wQsHX0ZB7jyXRqlMaKWLHo439GXjcgXp7cnNmimOpqQ77W8aF2HbCDe34W9EzK3Wnb_XrMEWpHZYG_o4vWix6kaqN4WmlcLFNuz7pcgAMVq_uK5m9aEeZAFuGksDDCnASyuIBh8LF0_9LvY9dm423h1uqpjL_qqAlkexTRLGRG4tEApkVG4DklvLW5kjoeN4hRHzzG2Zs7eUCZMvgocTNraYpjOr-aIVnMEZEl1ikDioSOqGhKDqekt97dFYShwqp-upiBDrMYGMeWp8H1GQNnADDQuky7HJqmMU2KHFn2BnyZf9DnCUJzemGPryrtzWAZSiD0eVOqoxChqUKzGrpruPRoLDKyp8EFSMu5_REA-46_E3wIbwjtiOW9jn6_avlsDaPpQe8SQDKVdTzi51yT0g9Qs78ZeOLkYSUEMbA401iSmKlvBH7mKYxQJo8B6bwLse9EewH7ZR0ePFCF--VbXnreGGvBvpG-U-9G0hiDnyGfFv-l77eYM0Zl8IuJZOtuSuULDHguqn2tPpIxPKCUl5xLGw182hwlB51n6ScVtqZDt5LYQvF-QJux2emlzSFD7WGecBkJ6pdE2zZO/p.jpeg)'
+            backgroundImage: 'url(https://ucb5ea564f8e92f3121e32939587.previews.dropboxusercontent.com/p/thumb/ACta83wQsHX0ZB7jyXRqlMaKWLHo439GXjcgXp7cnNmimOpqQ77W8aF2HbCDe34W9EzK3Wnb_XrMEWpHZYG_o4vWix6kaqN4WmlcLFNuz7pcgAMVq_uK5m9aEe
+          }
+          }
+  )
+}ZAFuGksDDCnASyuIBh8LF0_9LvY9dm423h1uqpjL_qqAlkexTRLGRG4tEApkVG4DklvLW5kjoeN4hRHzzG2Zs7eUCZMvgocTNraYpjOr-aIVnMEZEl1ikDioSOqGhKDqekt97dFYShwqp-upiBDrMYGMeWp8H1GQNnADDQuky7HJqmMU2KHFn2BnyZf9DnCUJzemGPryrtzWAZSiD0eVOqoxChqUKzGrpruPRoLDKyp8EFSMu5_REA-46_E3wIbwjtiOW9jn6_avlsDaPpQe8SQDKVdTzi51yT0g9Qs78ZeOLkYSUEMbA401iSmKlvBH7mKYxQJo8B6bwLse9EewH7ZR0ePFCF--VbXnreGGvBvpG-U-9G0hiDnyGfFv-l77eYM0Zl8IuJZOtuSuULDHguqn2tPpIxPKCUl5xLGw182hwlB51n6ScVtqZDt5LYQvF-QJux2emlzSFD7WGecBkJ6pdE2zZO/p.jpeg)'
           }}
         />
         {/* Gradient Overlay */}
