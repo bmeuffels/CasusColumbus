@@ -264,6 +264,8 @@ function App() {
   const [isExpandingCase, setIsExpandingCase] = useState(false);
   // Sync trigger - versie 1.1
   const [showFeedback, setShowFeedback] = useState(false);
+  const [reflections, setReflections] = useState<Array<{dimension: string, dimensionName: string, reflection: string}>>([]);
+  const [isGeneratingReflection, setIsGeneratingReflection] = useState(false);
   const [requiredSelections, setRequiredSelections] = useState(3);
   const [isMuted, setIsMuted] = useState(false);
 
