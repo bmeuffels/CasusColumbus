@@ -519,7 +519,8 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-cover bg-center bg-fixed" style={{backgroundImage: 'url(/Schutblad.jpg)'}}>
+      <div className="min-h-screen bg-white bg-opacity-30">
       {/* Background Elements */}
       <div className="absolute inset-0 z-0">
         {/* Background Image */}
@@ -533,6 +534,7 @@ function App() {
         {/* Animated Elements */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
       </div>
 
       {/* Header */}
