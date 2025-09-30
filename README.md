@@ -19,19 +19,19 @@ Een professionele web-applicatie voor het genereren van ethische casussen op het
 Na deployment, stel je API key in:
 1. Ga naar je project in Vercel dashboard
 2. Navigeer naar Settings > Environment Variables
-3. Voeg toe: `GEMINI_API_KEY=your_api_key_here`
+3. Voeg toe: `MISTRAL_API_KEY=your_api_key_here`
 
 ## Lokale Development
 1. Clone het project
 2. Installeer dependencies: `npm install`
-3. Maak een `.env` bestand met: `GEMINI_API_KEY=your_api_key_here`
+3. Maak een `.env` bestand met: `MISTRAL_API_KEY=your_api_key_here`
 4. Start development server: `npm run dev`
 
 ## API Key verkrijgen
-1. Ga naar [Google AI Studio](https://aistudio.google.com/)
+1. Ga naar [Mistral AI Console](https://console.mistral.ai/)
 2. Maak een account aan of log in
-3. Klik op "Get API key" in de linker sidebar
+3. Navigeer naar "API Keys" sectie
 4. Genereer een nieuwe API key
 5. Gebruik deze key in je environment variabelen
 
-**Let op:** De environment variabele moet `GEMINI_API_KEY` heten.
+**Let op:** De environment variabele moet `MISTRAL_API_KEY` heten.
