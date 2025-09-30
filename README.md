@@ -15,20 +15,23 @@ Een professionele web-applicatie voor het genereren van ethische casussen op het
 3. Selecteer je GitHub repository
 4. Klik op "Deploy"
 
-### Stap 3: Environment variabele instellen
+### Stap 3: Environment variabelen instellen
 Na deployment, stel je API key in:
 1. Ga naar je project in Vercel dashboard
 2. Navigeer naar Settings > Environment Variables
+3. Voeg toe: `GEMINI_API_KEY=your_api_key_here`
+
 ## Lokale Development
 1. Clone het project
 2. Installeer dependencies: `npm install`
-3. Maak een `.env` bestand met: `MISTRAL_API_KEY=your_api_key_here`
+3. Maak een `.env` bestand met: `GEMINI_API_KEY=your_api_key_here`
 4. Start development server: `npm run dev`
+
 ## API Key verkrijgen
-1. Ga naar [Mistral AI Console](https://console.mistral.ai/)
+1. Ga naar [Google AI Studio](https://aistudio.google.com/)
 2. Maak een account aan of log in
-3. Ga naar "API Keys" in het dashboard
+3. Klik op "Get API key" in de linker sidebar
 4. Genereer een nieuwe API key
 5. Gebruik deze key in je environment variabelen
 
-**Let op:** De environment variabele moet `MISTRAL_API_KEY` heten.
+**Let op:** De environment variabele moet `GEMINI_API_KEY` heten.
